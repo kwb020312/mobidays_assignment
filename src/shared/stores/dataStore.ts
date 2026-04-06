@@ -45,7 +45,7 @@ export const useDataStore = create<DataStore>((set, get) => ({
 
   addCampaign: (campaign) => {
     set((state) => ({
-      campaigns: [...state.campaigns, campaign],
+      campaigns: [campaign, ...state.campaigns],
     }));
   },
 

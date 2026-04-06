@@ -40,3 +40,16 @@ export {
   TableCell,
   TableCaption,
 } from "./table";
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+} from "./dialog";
+export { Label } from "./label";

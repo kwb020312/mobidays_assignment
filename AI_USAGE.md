@@ -551,4 +551,47 @@ REQUIREMENTS.md 3.3 캠페인 관리 테이블 구현:
 
 ---
 
+### 2026-04-06: 캠페인 등록 모달 구현 (3.4)
+
+**프롬프트:**
+
+```
+REQUIREMENTS.md 3.4 캠페인 등록 모달 구현:
+- 입력 필드: 캠페인명, 광고 매체, 예산, 집행 금액, 시작일, 종료일
+- 유효성 검사: RHF(React Hook Form) + Zod 조합
+- 자동 설정: 상태는 active 고정, ID는 자동 생성
+- 등록 성공 시 목록과 차트에 즉시 반영
+- 테이블에서 없는 지표는 `-`로 표시
+```
+
+**AI 작업 내용:**
+
+- `react-hook-form`, `@hookform/resolvers`, `zod` 패키지 설치
+- `shared/ui`에 Dialog, Label 컴포넌트 추가 (shadcn-ui 기반)
+- `features/campaignTable/schema.ts` 생성 (Zod 스키마 정의)
+  - 캠페인명: 2~100자
+  - 광고 매체: Google/Meta/Naver enum
+  - 예산: 100원 ~ 10억원 정수
+  - 집행 금액: 0원 ~ 예산 이하 정수
+  - 시작일/종료일: 필수, 종료일 >= 시작일 refine 검증
+- `CampaignRegistrationModal.tsx` 구현 (RHF + zodResolver 연동)
+- 달력에 년도/월 드롭다운 추가 (`captionLayout="dropdown"`)
+- `CampaignTable` 헤더에 등록 버튼 배치
+
+**의사결정:**
+
+- RHF + Zod 조합 선택 (비제어 컴포넌트 기반 성능 최적화, 타입 안정성)
+- 신규 캠페인은 dailyStats가 없어 지표 0 또는 `-` 표시 (요구사항 명시)
+- 입력받은 집행 금액은 validation 용도로만 사용 (실제 지표는 dailyStats 합산)
+
+**수정 사항:**
+
+- Zod v4 문법 변경으로 `required_error`, `invalid_type_error` 대신 `message` 사용
+- `MAX_BUDGET`, `MIN_BUDGET` 상수를 `constants/` 폴더로 분리 (사용자 요청)
+- 달력 범위 상수를 `shared/constants/calendar.ts`로 분리하여 공용화 (사용자 요청)
+- 신규 캠페인이 목록 앞쪽에 추가되도록 `addCampaign` 로직 수정 (`[campaign, ...state.campaigns]`)
+- `formatCurrency`에 0일 때 `-` 반환 로직 추가 (총 집행금액 포맷 동기화)
+
+---
+
 <!-- AI_LOG_MARKER: 새 기록은 이 위에 추가됩니다 -->

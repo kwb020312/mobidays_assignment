@@ -37,6 +37,7 @@ import { useFilteredCampaigns } from "../hooks/useFilteredCampaigns";
 import { STATUS_VARIANT } from "../constants";
 import type { SortableColumn, SortState } from "../types";
 import { PAGE_SIZE } from "../types";
+import { CampaignRegistrationModal } from "./CampaignRegistrationModal";
 
 export function CampaignTable() {
   const { data, isEmpty } = useFilteredCampaigns();
@@ -201,7 +202,10 @@ export function CampaignTable() {
     <Card>
       <CardHeader>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>캠페인 목록</CardTitle>
+          <div className="flex items-center gap-3">
+            <CardTitle>캠페인 목록</CardTitle>
+            <CampaignRegistrationModal />
+          </div>
           <div className="flex items-center gap-2">
             <Input
               placeholder="캠페인명 검색..."
@@ -251,103 +255,108 @@ export function CampaignTable() {
           ) : (
             <div className="flex flex-1 flex-col">
               <Table className="table-fixed">
-              <TableHeader>
-                <TableRow>
-                  <TableHead style={{ width: "4%" }}>
-                    <Checkbox
-                      checked={allCurrentPageSelected}
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead style={{ width: "20%" }}>캠페인명</TableHead>
-                  <TableHead style={{ width: "8%" }}>상태</TableHead>
-                  <TableHead style={{ width: "8%" }}>매체</TableHead>
-                  {renderSortableHeader("startDate", "집행기간", "15%")}
-                  {renderSortableHeader("totalCost", "총 집행금액", "15%", "right")}
-                  {renderSortableHeader("ctr", "CTR", "10%", "right")}
-                  {renderSortableHeader("cpc", "CPC", "10%", "right")}
-                  {renderSortableHeader("roas", "ROAS", "10%", "right")}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedData.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={
-                      selectedIds.has(row.id) ? "selected" : undefined
-                    }
-                  >
-                    <TableCell>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead style={{ width: "4%" }}>
                       <Checkbox
-                        checked={selectedIds.has(row.id)}
-                        onCheckedChange={(checked) =>
-                          handleSelectRow(row.id, checked === true)
-                        }
+                        checked={allCurrentPageSelected}
+                        onCheckedChange={handleSelectAll}
                       />
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      <span
-                        className="block truncate"
-                        title={row.name ?? undefined}
-                      >
-                        {row.name}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={STATUS_VARIANT[row.status]}>
-                        {STATUS_LABELS[row.status]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{PLATFORM_LABELS[row.platform]}</TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {formatDateRange(row.startDate, row.endDate)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(row.totalCost)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatPercent(row.ctr)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatCPC(row.cpc)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatPercent(row.roas)}
-                    </TableCell>
+                    </TableHead>
+                    <TableHead style={{ width: "20%" }}>캠페인명</TableHead>
+                    <TableHead style={{ width: "8%" }}>상태</TableHead>
+                    <TableHead style={{ width: "8%" }}>매체</TableHead>
+                    {renderSortableHeader("startDate", "집행기간", "15%")}
+                    {renderSortableHeader(
+                      "totalCost",
+                      "총 집행금액",
+                      "15%",
+                      "right"
+                    )}
+                    {renderSortableHeader("ctr", "CTR", "10%", "right")}
+                    {renderSortableHeader("cpc", "CPC", "10%", "right")}
+                    {renderSortableHeader("roas", "ROAS", "10%", "right")}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedData.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={
+                        selectedIds.has(row.id) ? "selected" : undefined
+                      }
+                    >
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(row.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelectRow(row.id, checked === true)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <span
+                          className="block truncate"
+                          title={row.name ?? undefined}
+                        >
+                          {row.name || "-"}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={STATUS_VARIANT[row.status]}>
+                          {STATUS_LABELS[row.status]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{PLATFORM_LABELS[row.platform]}</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {formatDateRange(row.startDate, row.endDate)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(row.totalCost)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatPercent(row.ctr)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCPC(row.cpc)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatPercent(row.roas)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
 
-            {/* 페이지네이션 - 하단 고정 */}
-            <div
-              className={cn(
-                "mt-auto flex items-center justify-center gap-2 pt-4",
-                totalPages <= 1 && "invisible"
-              )}
-            >
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
+              {/* 페이지네이션 - 하단 고정 */}
+              <div
+                className={cn(
+                  "mt-auto flex items-center justify-center gap-2 pt-4",
+                  totalPages <= 1 && "invisible"
+                )}
               >
-                이전
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                {currentPage} / {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                다음
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  이전
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {currentPage} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  다음
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
         </div>
       </CardContent>
     </Card>
