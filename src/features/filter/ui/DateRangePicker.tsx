@@ -3,7 +3,6 @@
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import type { DateRange as DayPickerDateRange } from "react-day-picker";
 
 import { cn } from "@/shared/lib";
 import { Button, Calendar, Popover, PopoverContent, PopoverTrigger } from "@/shared/ui";
@@ -15,56 +14,89 @@ interface DateRangePickerProps {
   className?: string;
 }
 
-function formatDateRange(range: DateRange): string {
-  const fromStr = format(range.from, "yyyy.MM.dd", { locale: ko });
-  const toStr = format(range.to, "yyyy.MM.dd", { locale: ko });
-  return `${fromStr} - ${toStr}`;
-}
+const calendarProps = {
+  locale: ko,
+  captionLayout: "dropdown" as const,
+  startMonth: new Date(2000, 0),
+  endMonth: new Date(2030, 11),
+};
 
 export function DateRangePicker({
   value,
   onChange,
   className,
 }: DateRangePickerProps) {
-  const handleSelect = (range: DayPickerDateRange | undefined) => {
-    if (!range?.from) return;
+  const handleSelect = (type: "from" | "to") => (date: Date | undefined) => {
+    if (!date) return;
 
-    const newRange: DateRange = {
-      from: range.from,
-      to: range.to ?? range.from,
-    };
-    onChange(newRange);
+    if (type === "from") {
+      onChange({
+        from: date,
+        to: date > value.to ? date : value.to,
+      });
+    } else {
+      onChange({
+        from: date < value.from ? date : value.from,
+        to: date,
+      });
+    }
   };
 
   return (
-    <Popover>
-      <PopoverTrigger
-        render={
-          <Button
-            variant="outline"
-            className={cn(
-              "w-[280px] justify-start text-left font-normal",
-              className
-            )}
-          >
-            <CalendarIcon
-              data-icon="inline-start"
-              className="text-muted-foreground"
-            />
-            {formatDateRange(value)}
-          </Button>
-        }
-      />
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="range"
-          defaultMonth={value.from}
-          selected={{ from: value.from, to: value.to }}
-          onSelect={handleSelect}
-          numberOfMonths={2}
-          locale={ko}
+    <div className={cn("flex items-center gap-2", className)}>
+      <Popover>
+        <PopoverTrigger
+          render={
+            <Button
+              variant="outline"
+              className="w-[140px] justify-start text-left font-normal"
+            >
+              <CalendarIcon
+                data-icon="inline-start"
+                className="text-muted-foreground"
+              />
+              {format(value.from, "yyyy.MM.dd", { locale: ko })}
+            </Button>
+          }
         />
-      </PopoverContent>
-    </Popover>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={value.from}
+            onSelect={handleSelect("from")}
+            defaultMonth={value.from}
+            {...calendarProps}
+          />
+        </PopoverContent>
+      </Popover>
+
+      <span className="text-muted-foreground">~</span>
+
+      <Popover>
+        <PopoverTrigger
+          render={
+            <Button
+              variant="outline"
+              className="w-[140px] justify-start text-left font-normal"
+            >
+              <CalendarIcon
+                data-icon="inline-start"
+                className="text-muted-foreground"
+              />
+              {format(value.to, "yyyy.MM.dd", { locale: ko })}
+            </Button>
+          }
+        />
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={value.to}
+            onSelect={handleSelect("to")}
+            defaultMonth={value.to}
+            {...calendarProps}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
