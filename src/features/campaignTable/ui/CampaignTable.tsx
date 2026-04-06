@@ -164,14 +164,23 @@ export function CampaignTable() {
   const renderSortableHeader = (
     column: SortableColumn,
     label: string,
-    width: string
+    width: string,
+    align: "left" | "right" = "left"
   ) => (
     <TableHead
-      className="cursor-pointer select-none hover:bg-muted/50"
+      className={cn(
+        "cursor-pointer select-none hover:bg-muted/50",
+        align === "right" && "text-right"
+      )}
       style={{ width }}
       onClick={() => handleSort(column)}
     >
-      <span className="inline-flex items-center gap-1">
+      <span
+        className={cn(
+          "inline-flex items-center gap-1",
+          align === "right" && "justify-end"
+        )}
+      >
         {label}
         <span className="inline-flex size-4 items-center justify-center">
           <ArrowUp
@@ -207,42 +216,41 @@ export function CampaignTable() {
         </div>
 
         {/* 일괄 상태 변경 */}
-        {selectedIds.size > 0 && (
-          <div className="flex items-center gap-2 pt-2">
-            <span className="text-sm text-muted-foreground">
-              {selectedIds.size}개 선택됨
-            </span>
-            <Select
-              options={ALL_STATUSES.map((s) => ({
-                value: s,
-                label: STATUS_LABELS[s],
-              }))}
-              placeholder="상태 변경"
-              onChange={(e) => {
-                if (e.target.value) {
-                  handleBulkStatusChange(e.target.value as CampaignStatus);
-                }
-              }}
-              value=""
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedIds(new Set())}
-            >
-              선택 해제
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center gap-2 pt-2">
+          <span className="text-sm text-muted-foreground">
+            {selectedIds.size}개 선택됨
+          </span>
+          <Select
+            options={ALL_STATUSES.map((s) => ({
+              value: s,
+              label: STATUS_LABELS[s],
+            }))}
+            placeholder="상태 변경"
+            onChange={(e) => {
+              if (e.target.value) {
+                handleBulkStatusChange(e.target.value as CampaignStatus);
+              }
+            }}
+            value=""
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectedIds(new Set())}
+          >
+            선택 해제
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        {isEmpty ? (
-          <div className="flex h-32 items-center justify-center text-muted-foreground">
-            선택한 조건에 해당하는 캠페인이 없습니다.
-          </div>
-        ) : (
-          <>
-            <Table className="table-fixed">
+        <div className="flex min-h-[540px] flex-col">
+          {isEmpty ? (
+            <div className="flex flex-1 items-center justify-center text-muted-foreground">
+              선택한 조건에 해당하는 캠페인이 없습니다.
+            </div>
+          ) : (
+            <div className="flex flex-1 flex-col">
+              <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
                   <TableHead style={{ width: "4%" }}>
@@ -255,10 +263,10 @@ export function CampaignTable() {
                   <TableHead style={{ width: "8%" }}>상태</TableHead>
                   <TableHead style={{ width: "8%" }}>매체</TableHead>
                   {renderSortableHeader("startDate", "집행기간", "15%")}
-                  {renderSortableHeader("totalCost", "총 집행금액", "15%")}
-                  {renderSortableHeader("ctr", "CTR", "10%")}
-                  {renderSortableHeader("cpc", "CPC", "10%")}
-                  {renderSortableHeader("roas", "ROAS", "10%")}
+                  {renderSortableHeader("totalCost", "총 집행금액", "15%", "right")}
+                  {renderSortableHeader("ctr", "CTR", "10%", "right")}
+                  {renderSortableHeader("cpc", "CPC", "10%", "right")}
+                  {renderSortableHeader("roas", "ROAS", "10%", "right")}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -277,7 +285,14 @@ export function CampaignTable() {
                         }
                       />
                     </TableCell>
-                    <TableCell className="font-medium">{row.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <span
+                        className="block truncate"
+                        title={row.name ?? undefined}
+                      >
+                        {row.name}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       <Badge variant={STATUS_VARIANT[row.status]}>
                         {STATUS_LABELS[row.status]}
@@ -304,32 +319,36 @@ export function CampaignTable() {
               </TableBody>
             </Table>
 
-            {/* 페이지네이션 */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  이전
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {currentPage} / {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  다음
-                </Button>
-              </div>
-            )}
-          </>
+            {/* 페이지네이션 - 하단 고정 */}
+            <div
+              className={cn(
+                "mt-auto flex items-center justify-center gap-2 pt-4",
+                totalPages <= 1 && "invisible"
+              )}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                이전
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {currentPage} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                다음
+              </Button>
+            </div>
+          </div>
         )}
+        </div>
       </CardContent>
     </Card>
   );
