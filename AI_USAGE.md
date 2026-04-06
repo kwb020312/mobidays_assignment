@@ -472,4 +472,49 @@ DateRangePicker에 빠른 선택 프리셋 추가:
 
 ---
 
+### 2026-04-06: 캠페인 관리 테이블 구현 (3.3)
+
+**프롬프트:**
+
+```
+REQUIREMENTS.md 3.3 캠페인 관리 테이블 구현:
+- 컬럼: 캠페인명, 상태, 매체, 집행기간, 총 집행금액, CTR, CPC, ROAS
+- 정렬: 집행기간, 총 집행금액, CTR, CPC, ROAS 오름차순/내림차순
+- 검색: 캠페인명 실시간 검색 (테이블에만 적용), 검색 결과/전체 건수 표시
+- 페이지네이션: 10건/페이지
+- 일괄 상태 변경: 체크박스 선택 → 드롭다운 상태 변경
+
+기존 Feature-based 아키텍처 유지, 글로벌 필터와 실시간 연동
+```
+
+**AI 작업 내용:**
+
+- `shared/ui` 컴포넌트 추가 (Table, Select, Input)
+- `shared/stores/dataStore.ts` 생성 (API 데이터 중앙 관리)
+- `shared/providers/DataProvider.tsx` 생성 (앱 초기화 시 데이터 로드)
+- `features/campaignTable` 모듈 생성
+  - `types.ts`: CampaignTableRow, SortState 타입 정의
+  - `lib/calculations.ts`: 집계 메트릭 및 파생 지표 계산
+  - `hooks/useFilteredCampaigns.ts`: 필터링 + 지표 계산 훅
+  - `ui/CampaignTable.tsx`: 테이블 메인 컴포넌트
+  - `constants/index.ts`: 상태 배지 색상 매핑
+
+**의사결정:**
+
+- Zustand 기반 데이터 스토어로 API 호출 중앙화 (여러 컴포넌트에서 중복 fetch 방지)
+- `table-fixed` + 퍼센테이지 너비로 정렬 시 레이아웃 안정성 확보
+- lucide-react 아이콘 + CSS rotate로 정렬 방향 표시 (아이콘 교체 대신 회전)
+
+**수정 사항:**
+
+- **데이터 패칭 구조 전면 재설계**: AI가 제안한 각 훅에서 개별 API 호출 구조를 "스토어에 한 번 저장 후 재사용" 구조로 변경. 불필요한 중복 fetch 제거 및 성능 최적화
+- **계산 함수 위치 조정**: AI가 `entities/dailyStat/lib.ts`에 배치한 CTR/CPC/ROAS 계산 함수를 `features/campaignTable/lib`로 이동. 해당 함수들이 테이블에서만 사용되므로 피처 단위 관리가 적절
+- **포매터 함수 공유화**: AI가 피처 내부에 생성한 formatters를 `shared/lib`로 이동. 여러 피처에서 재사용 가능한 범용 함수임을 지적
+- **useMemo 전면 제거**: React Compiler 1.0 도입으로 자동 메모이제이션되므로 수동 useMemo 불필요
+- **정렬 아이콘 구현 수정**: AI가 제안한 `ArrowUpDown` 아이콘은 대칭이라 180도 회전해도 시각적 차이 없음 → `ArrowUp` 아이콘으로 변경하고 고정 크기 컨테이너로 감싸 회전 시 레이아웃 흔들림 방지
+- **테이블 레이아웃 안정화**: 정렬 변경 시 컬럼 너비가 데이터에 따라 변동하는 문제 → `table-fixed` + 퍼센테이지 너비 지정으로 해결
+- **Null Safety 보완**: `row.name?.toLowerCase()` 옵셔널 체이닝 추가 (db.json에 name이 null인 데이터 존재)
+
+---
+
 <!-- AI_LOG_MARKER: 새 기록은 이 위에 추가됩니다 -->

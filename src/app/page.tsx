@@ -1,5 +1,6 @@
 import { GlobalFilter } from "@/features/filter";
 import { DailyTrendChart } from "@/features/dailyTrendChart";
+import { CampaignTable } from "@/features/campaignTable";
 
 export default function DashboardPage() {
   return (
@@ -15,9 +16,7 @@ export default function DashboardPage() {
 
         <div className="grid gap-6">
           <DailyTrendChart />
-          <div className="rounded-lg border bg-card p-6 text-center text-muted-foreground">
-            캠페인 관리 테이블 영역 (3.3)
-          </div>
+          <CampaignTable />
         </div>
       </main>
     </div>

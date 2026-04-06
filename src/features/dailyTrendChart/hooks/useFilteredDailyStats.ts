@@ -1,49 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { parseISO, isWithinInterval } from "date-fns";
 import {
   useFilterStore,
   selectEffectiveStatus,
   selectEffectivePlatform,
 } from "@/features/filter";
-import { campaignApi } from "@/entities/campaign";
-import { dailyStatApi } from "@/entities/dailyStat";
+import { useDataStore } from "@/shared/stores";
 import { normalizeDate, normalizeNumber } from "@/shared/lib";
-import type { Campaign } from "@/entities/campaign";
-import type { DailyStat } from "@/entities/dailyStat";
 import type { AggregatedDailyStat } from "../types";
 
 export function useFilteredDailyStats() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [dailyStats, setDailyStats] = useState<DailyStat[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const campaigns = useDataStore((state) => state.campaigns);
+  const dailyStats = useDataStore((state) => state.dailyStats);
+  const isLoading = useDataStore((state) => state.isLoading);
+  const error = useDataStore((state) => state.error);
 
   const dateRange = useFilterStore((state) => state.dateRange);
   const effectiveStatus = useFilterStore(selectEffectiveStatus);
   const effectivePlatform = useFilterStore(selectEffectivePlatform);
-
-  // API 데이터 로드
-  useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const [campaignsData, dailyStatsData] = await Promise.all([
-          campaignApi.getAll(),
-          dailyStatApi.getAll(),
-        ]);
-        setCampaigns(campaignsData);
-        setDailyStats(dailyStatsData);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error("데이터 로드 실패"));
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
 
   // 필터링된 캠페인 ID 목록
   const filteredCampaignIds = new Set(

@@ -28,3 +28,15 @@ export {
   ChartStyle,
   type ChartConfig,
 } from "./chart";
+export { Input } from "./input";
+export { Select, type SelectProps } from "./select";
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+} from "./table";
