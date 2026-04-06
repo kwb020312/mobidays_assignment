@@ -64,8 +64,11 @@ export const useFilterStore = create<FilterStore>((set) => ({
 }));
 
 // Selectors
-export const selectEffectiveStatus = (state: FilterStore): CampaignStatus[] =>
-  state.status.size === 0 ? ALL_STATUSES : Array.from(state.status);
+const ALL_STATUSES_SET = new Set(ALL_STATUSES);
+const ALL_PLATFORMS_SET = new Set(ALL_PLATFORMS);
 
-export const selectEffectivePlatform = (state: FilterStore): Platform[] =>
-  state.platform.size === 0 ? ALL_PLATFORMS : Array.from(state.platform);
+export const selectEffectiveStatus = (state: FilterStore): Set<CampaignStatus> =>
+  state.status.size === 0 ? ALL_STATUSES_SET : state.status;
+
+export const selectEffectivePlatform = (state: FilterStore): Set<Platform> =>
+  state.platform.size === 0 ? ALL_PLATFORMS_SET : state.platform;

@@ -245,4 +245,48 @@ DateRangePicker 년도 선택 UX 개선:
 
 ---
 
+### 2026-04-06 12:09: 일별 추이 차트 구현 (3.2)
+
+**프롬프트:**
+
+```
+REQUIREMENTS.md 3.2 일별 추이 차트 구현:
+- 필터링된 캠페인의 일별 데이터 시각화
+- X축(날짜), Y축(수치), 범례(Legend) 필수
+- 메트릭 토글: 노출수/클릭수 초기 활성화, 최소 1개 선택 유지
+- 호버 시 툴팁 표시
+
+기술 스택:
+- shadcn-ui chart 컴포넌트 + recharts 기반
+- 기존 Feature-based 아키텍처 유지 (features/dailyTrendChart)
+- 글로벌 필터 store(Zustand)와 실시간 연동
+```
+
+**AI 작업 내용:**
+
+- recharts 패키지 및 shadcn-ui chart 컴포넌트 설치
+- `features/dailyTrendChart` 모듈 생성 (Feature-based 구조)
+  - `types.ts`: DailyMetric, AggregatedDailyStat 타입 정의
+  - `hooks/useFilteredDailyStats.ts`: 필터링된 데이터 집계 훅
+  - `ui/MetricToggle.tsx`: 메트릭 토글 버튼 컴포넌트
+  - `ui/DailyTrendChart.tsx`: 라인 차트 메인 컴포넌트
+- 글로벌 필터 연동 (Zustand store 구독)
+- 데이터 전처리 (날짜 정규화, null safety, Division by Zero 방지)
+
+**의사결정:**
+
+- shadcn-ui chart + recharts 조합 (일관된 디자인 시스템, 충분한 커스터마이징)
+- LineChart 선택 (일별 추이 시각화에 적합)
+- Set 자료구조 기반 메트릭 토글 (O(1) 조회, 필터와 일관성)
+
+**수정 사항:**
+
+- AI가 제안한 폴더명 `daily-trend-chart`를 `dailyTrendChart` (카멜케이스)로 변경
+- useMemo/useCallback 제거 (React Compiler 1.0이 자동 처리)
+- useState 초기화 구문 간소화 (`() => new Set()` → `new Set()`)
+- selectEffectiveStatus/Platform 반환 타입을 배열에서 Set으로 변경 (`.includes()` → `.has()` O(1) 조회)
+- filteredCampaignIds도 Set으로 변경하여 일관된 O(1) 조회 적용
+
+---
+
 <!-- AI_LOG_MARKER: 새 기록은 이 위에 추가됩니다 -->

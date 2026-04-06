@@ -1,4 +1,5 @@
 import { GlobalFilter } from "@/features/filter";
+import { DailyTrendChart } from "@/features/dailyTrendChart";
 
 export default function DashboardPage() {
   return (
@@ -13,10 +14,7 @@ export default function DashboardPage() {
         <GlobalFilter />
 
         <div className="grid gap-6">
-          {/* 추후 차트 및 테이블 컴포넌트가 들어갈 영역 */}
-          <div className="rounded-lg border bg-card p-6 text-center text-muted-foreground">
-            일별 추이 차트 영역 (3.2)
-          </div>
+          <DailyTrendChart />
           <div className="rounded-lg border bg-card p-6 text-center text-muted-foreground">
             캠페인 관리 테이블 영역 (3.3)
           </div>
