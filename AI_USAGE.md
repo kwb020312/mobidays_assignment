@@ -440,4 +440,36 @@ REQUIREMENTS.md 요구사항 기준으로 판단
 
 ---
 
+### 2026-04-06: 날짜 프리셋 버튼 및 상수 모듈화
+
+**프롬프트:**
+
+```
+DateRangePicker에 빠른 선택 프리셋 추가:
+- 오늘, 이번 주, 이번 달, 최근 3개월
+- 1월 ~ 12월 (올해 기준)
+- 버튼 그룹 형태로 필터 아래 배치
+```
+
+**AI 작업 내용:**
+
+- `DatePresets.tsx` 컴포넌트 생성 (date-fns 기반 날짜 범위 계산)
+- DATE_PRESETS: 상대적 기간 (오늘, 이번 주, 이번 달, 최근 3개월)
+- MONTH_PRESETS: 월별 선택 (1월~12월)
+- GlobalFilter 하단에 "빠른 선택:" 버튼 그룹 배치
+- `constants/` 폴더 생성 및 STATUS_OPTIONS, PLATFORM_OPTIONS 분리
+
+**의사결정:**
+
+- 프리셋 UI를 드롭다운/캘린더 사이드바 대신 버튼 그룹으로 선택 (사용자 요청)
+- date-fns 함수 활용으로 상대적 날짜 계산 (startOfWeek, subMonths 등)
+- 프리셋 로직을 별도 컴포넌트로 분리하여 GlobalFilter 간결화
+- 필터 옵션 상수를 constants 폴더로 분리하여 관심사 분리
+
+**수정 사항:**
+
+- AI가 constants.ts 단일 파일로 제안했으나, 사용자 요청에 따라 constants/ 폴더 구조로 변경
+
+---
+
 <!-- AI_LOG_MARKER: 새 기록은 이 위에 추가됩니다 -->
