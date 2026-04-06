@@ -123,7 +123,7 @@ export function DailyTrendChart() {
             선택한 조건에 해당하는 데이터가 없습니다.
           </div>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ChartContainer config={chartConfig} className="aspect-auto h-[300px] w-full">
             <LineChart data={data} accessibilityLayer>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis
