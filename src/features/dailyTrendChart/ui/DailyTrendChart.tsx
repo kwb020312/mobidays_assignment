@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { format, parseISO } from "date-fns";
-import { ko } from "date-fns/locale";
 import {
   LineChart,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
+  Label,
 } from "recharts";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
   ChartContainer,
@@ -22,41 +22,15 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from "@/shared/ui";
+import { useFilterStore } from "@/features/filter";
 import { useFilteredDailyStats } from "../hooks/useFilteredDailyStats";
 import { MetricToggle } from "./MetricToggle";
 import { METRIC_OPTIONS, DEFAULT_METRICS, type DailyMetric } from "../types";
-
-function formatNumber(value: number): string {
-  if (value >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(1)}B`;
-  }
-  if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(1)}M`;
-  }
-  if (value >= 1_000) {
-    return `${(value / 1_000).toFixed(1)}K`;
-  }
-  return value.toLocaleString();
-}
-
-function formatXAxisDate(dateStr: string): string {
-  try {
-    return format(parseISO(dateStr), "M/d", { locale: ko });
-  } catch {
-    return dateStr;
-  }
-}
-
-function formatTooltipDate(dateStr: string): string {
-  try {
-    return format(parseISO(dateStr), "yyyy년 M월 d일", { locale: ko });
-  } catch {
-    return dateStr;
-  }
-}
+import { formatNumber, formatXAxisDate, formatTooltipDate, formatDateRange } from "../lib/formatters";
 
 export function DailyTrendChart() {
   const { data, isLoading, error, isEmpty } = useFilteredDailyStats();
+  const dateRange = useFilterStore((state) => state.dateRange);
   const [selectedMetrics, setSelectedMetrics] = useState(
     new Set<DailyMetric>(DEFAULT_METRICS)
   );
@@ -94,6 +68,7 @@ export function DailyTrendChart() {
       <Card>
         <CardHeader>
           <CardTitle>일별 추이</CardTitle>
+          <CardDescription>{formatDateRange(dateRange.from, dateRange.to)}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex h-[300px] items-center justify-center text-destructive">
@@ -107,7 +82,10 @@ export function DailyTrendChart() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>일별 추이</CardTitle>
+        <div>
+          <CardTitle>일별 추이</CardTitle>
+          <CardDescription>{formatDateRange(dateRange.from, dateRange.to)}</CardDescription>
+        </div>
         <MetricToggle
           selectedMetrics={selectedMetrics}
           onToggle={handleToggleMetric}
@@ -134,12 +112,36 @@ export function DailyTrendChart() {
                 tickMargin={8}
               />
               <YAxis
+                yAxisId="left"
                 tickFormatter={formatNumber}
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                width={60}
-              />
+                width={80}
+              >
+                <Label
+                  value="노출수"
+                  angle={-90}
+                  position="insideLeft"
+                  style={{ textAnchor: "middle", fill: "var(--chart-1)" }}
+                />
+              </YAxis>
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tickFormatter={formatNumber}
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                width={80}
+              >
+                <Label
+                  value="클릭수"
+                  angle={90}
+                  position="insideRight"
+                  style={{ textAnchor: "middle", fill: "var(--chart-2)" }}
+                />
+              </YAxis>
               <ChartTooltip
                 content={
                   <ChartTooltipContent
@@ -162,6 +164,7 @@ export function DailyTrendChart() {
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4 }}
+                  yAxisId={metric.key === "impressions" ? "left" : "right"}
                 />
               ))}
             </LineChart>

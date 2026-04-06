@@ -97,15 +97,11 @@ export function useFilteredDailyStats() {
     if (existing) {
       existing.impressions += normalizeNumber(stat.impressions);
       existing.clicks += normalizeNumber(stat.clicks);
-      existing.conversions += normalizeNumber(stat.conversions);
-      existing.cost += normalizeNumber(stat.cost);
     } else {
       dateMap.set(normalizedDate, {
         date: normalizedDate,
         impressions: normalizeNumber(stat.impressions),
         clicks: normalizeNumber(stat.clicks),
-        conversions: normalizeNumber(stat.conversions),
-        cost: normalizeNumber(stat.cost),
       });
     }
   }
