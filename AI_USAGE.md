@@ -76,4 +76,29 @@ db.json 기반으로 타입 정의 및 API wrapper 함수 구현
 
 ---
 
+### 2026-04-06: 타입 시스템 모듈화 리팩토링
+
+**프롬프트:**
+```
+타입 정의 파일을 도메인별로 분리하여 모듈화
+```
+
+**AI 작업 내용:**
+- 단일 `types/index.ts` 파일을 도메인별 모듈로 분리
+- `common.ts`: 공통 타입(Platform, CampaignStatus) 및 상수 정의
+- `campaign.ts`: 캠페인 관련 타입(Campaign, DailyStat, Database)
+- `filter.ts`: 필터 관련 타입(DateRange, FilterState)
+- API 모듈의 import 경로 업데이트
+
+**의사결정:**
+- 단일 파일 대신 도메인별 분리로 코드 응집도 향상
+- 상수(STATUS_LABELS, PLATFORM_LABELS 등)를 타입과 함께 배치하여 연관성 유지
+- 필터 타입을 별도 모듈로 분리하여 UI 레이어와의 결합도 최소화
+
+**수정 사항:**
+- AI가 제안한 단일 파일 구조 대신 유지보수성과 확장성을 고려하여 도메인별 모듈 분리 구조로 재설계
+- 불필요한 re-export 패턴 제거하고 명시적 import 경로 사용으로 의존성 명확화
+
+---
+
 <!-- AI_LOG_MARKER: 새 기록은 이 위에 추가됩니다 -->

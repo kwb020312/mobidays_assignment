@@ -1,8 +1,4 @@
-// 광고 매체 타입
-export type Platform = 'Google' | 'Meta' | 'Naver';
-
-// 캠페인 상태 타입
-export type CampaignStatus = 'active' | 'paused' | 'ended';
+import type { Platform, CampaignStatus } from './common';
 
 // 캠페인 정보
 export interface Campaign {

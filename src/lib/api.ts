@@ -1,4 +1,4 @@
-import type { Campaign, DailyStat } from '@/types';
+import type { Campaign, DailyStat } from '@/types/campaign';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
