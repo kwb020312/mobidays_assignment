@@ -289,4 +289,58 @@ REQUIREMENTS.md 3.2 일별 추이 차트 구현:
 
 ---
 
+### 2026-04-06 12:12: API 엔드포인트 수정 및 Null Safety 강화
+
+**프롬프트:**
+
+```
+dailyStatApi에서 404 에러 발생 원인 분석:
+- campaigns는 정상 동작하는데 dailyStats만 404
+- REQUIREMENTS.md의 Null Safety 평가 포인트 대응 필요
+```
+
+**AI 작업 내용:**
+
+- db.json 키(`daily_stats`)와 API 호출(`/dailyStats`) 불일치 발견 및 수정
+- `normalizeDate` 함수 Null Safety 강화 (null/undefined 입력 처리)
+- 범용 유틸 함수(`normalizeDate`, `normalizeNumber`)를 `@/shared/lib`로 이동
+
+**의사결정:**
+
+- json-server는 db.json 키를 엔드포인트로 사용 → API 코드 수정이 적절
+- 데이터 전처리 함수는 여러 feature에서 재사용 가능 → shared 레이어 배치
+
+**수정 사항:**
+
+- AI가 생성한 로컬 유틸 함수를 shared 모듈로 이동 제안 (코드 중복 방지 및 일관성 확보)
+
+---
+
+### 2026-04-06 12:25: 데이터 패칭 전략 검토 (SSR vs CSR, React Query)
+
+**프롬프트:**
+
+```
+현재 useEffect + useState 기반 CSR 데이터 패칭 구조에 대해:
+1. SSR로 변경하는 것이 적절한지 검토
+2. React Query 도입 필요성 검토
+REQUIREMENTS.md 요구사항 기준으로 판단
+```
+
+**AI 작업 내용:**
+
+- REQUIREMENTS.md 요구사항 기반 아키텍처 분석
+- CSR vs SSR, React Query 도입 여부 트레이드오프 검토
+
+**의사결정:**
+
+- **CSR 유지**: 실시간 필터 동기화, 클라이언트 메모리 상태 병합(신규 등록), SEO 불필요
+- **React Query 미도입**: 단일 초기 fetch, 서버 동기화 없음, 현재 구조로 충분
+
+**수정 사항:**
+
+- (없음 - 기존 구조가 요구사항에 적합하다고 판단하여 유지)
+
+---
+
 <!-- AI_LOG_MARKER: 새 기록은 이 위에 추가됩니다 -->

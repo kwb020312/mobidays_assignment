@@ -9,22 +9,10 @@ import {
 } from "@/features/filter";
 import { campaignApi } from "@/entities/campaign";
 import { dailyStatApi } from "@/entities/dailyStat";
+import { normalizeDate, normalizeNumber } from "@/shared/lib";
 import type { Campaign } from "@/entities/campaign";
 import type { DailyStat } from "@/entities/dailyStat";
 import type { AggregatedDailyStat } from "../types";
-
-// 날짜 포맷 정규화 (YYYY/MM/DD -> YYYY-MM-DD)
-function normalizeDate(date: string): string {
-  return date.replace(/\//g, "-");
-}
-
-// 숫자 정규화 (null, undefined, NaN 처리)
-function normalizeNumber(value: number | null | undefined): number {
-  if (value === null || value === undefined || Number.isNaN(value)) {
-    return 0;
-  }
-  return value;
-}
 
 export function useFilteredDailyStats() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -66,10 +54,15 @@ export function useFilteredDailyStats() {
         // 플랫폼 필터
         if (!effectivePlatform.has(campaign.platform)) return false;
 
+        // 시작일이 없으면 필터에서 제외
+        const normalizedStartDate = normalizeDate(campaign.startDate);
+        if (!normalizedStartDate) return false;
+
         // 집행 기간 필터: 캠페인 기간과 필터 기간이 겹치는지 확인
-        const campaignStart = parseISO(normalizeDate(campaign.startDate));
-        const campaignEnd = campaign.endDate
-          ? parseISO(normalizeDate(campaign.endDate))
+        const campaignStart = parseISO(normalizedStartDate);
+        const normalizedEndDate = normalizeDate(campaign.endDate);
+        const campaignEnd = normalizedEndDate
+          ? parseISO(normalizedEndDate)
           : new Date(2099, 11, 31); // 종료일 없으면 무한대로 간주
 
         // 기간이 겹치는지 확인
@@ -88,15 +81,17 @@ export function useFilteredDailyStats() {
     // 캠페인 ID 필터
     if (!filteredCampaignIds.has(stat.campaignId)) continue;
 
+    // 날짜가 없으면 스킵
+    const normalizedDate = normalizeDate(stat.date);
+    if (!normalizedDate) continue;
+
     // 날짜 필터
-    const statDate = parseISO(normalizeDate(stat.date));
+    const statDate = parseISO(normalizedDate);
     if (
       !isWithinInterval(statDate, { start: dateRange.from, end: dateRange.to })
     ) {
       continue;
     }
-
-    const normalizedDate = normalizeDate(stat.date);
     const existing = dateMap.get(normalizedDate);
 
     if (existing) {
