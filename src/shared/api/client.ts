@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+import { API_BASE_URL } from "@/shared/constants";
 
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
@@ -10,7 +10,7 @@ async function request<T>(
 ): Promise<T> {
   const { body, headers, ...rest } = options;
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
       ...headers,
