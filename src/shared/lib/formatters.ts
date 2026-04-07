@@ -17,6 +17,22 @@ export function formatNumber(value: number): string {
   return value.toLocaleString("ko-KR");
 }
 
+// 큰 숫자 축약 포맷 (1.2억, 12.3만)
+export function formatCompactNumber(value: number): string {
+  const absValue = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+
+  if (absValue >= 100_000_000) {
+    const billions = absValue / 100_000_000;
+    return `${sign}${billions % 1 === 0 ? billions.toFixed(0) : billions.toFixed(1)}억`;
+  }
+  if (absValue >= 10_000) {
+    const tenThousands = absValue / 10_000;
+    return `${sign}${tenThousands % 1 === 0 ? tenThousands.toFixed(0) : tenThousands.toFixed(1)}만`;
+  }
+  return formatNumber(value);
+}
+
 // 금액 포맷 (원) - 0이면 "-" 표시
 export function formatCurrency(value: number): string {
   if (value === 0) return "-";

@@ -1,3 +1,4 @@
+"use client";
 
 import { useState } from "react";
 import { ArrowUp } from "lucide-react";
@@ -246,7 +247,7 @@ export function CampaignTable() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex min-h-[540px] flex-col">
+        <div className="flex min-h-[600px] flex-col">
           {isEmpty ? (
             <div className="flex flex-1 items-center justify-center text-muted-foreground">
               선택한 조건에 해당하는 캠페인이 없습니다.
@@ -288,7 +289,7 @@ export function CampaignTable() {
                       <TableCell>
                         <Checkbox
                           checked={selectedIds.has(row.id)}
-                          onCheckedChange={(checked: boolean) =>
+                          onCheckedChange={(checked) =>
                             handleSelectRow(row.id, checked === true)
                           }
                         />

@@ -1,6 +1,8 @@
 import { DataProvider } from "@/shared/providers";
 import { GlobalFilter } from "@/features/filter";
 import { DailyTrendChart } from "@/features/dailyTrendChart";
+import { PlatformChart } from "@/features/platformChart";
+import { CampaignRankingChart } from "@/features/campaignRanking";
 import { CampaignTable } from "@/features/campaignTable";
 
 export default function App() {
@@ -16,10 +18,14 @@ export default function App() {
         <main className="container mx-auto space-y-6 p-4 md:p-6">
           <GlobalFilter />
 
-          <div className="grid gap-6">
-            <DailyTrendChart />
-            <CampaignTable />
+          <DailyTrendChart />
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <PlatformChart />
+            <CampaignRankingChart />
           </div>
+
+          <CampaignTable />
         </main>
       </div>
     </DataProvider>
