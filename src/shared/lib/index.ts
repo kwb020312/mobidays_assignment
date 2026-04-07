@@ -19,7 +19,7 @@ export {
   type CampaignFilterParams,
   type DailyStatFilterParams,
   type CampaignAggregation,
-} from "./campaignFilter";
+} from "./dataFilter";
 export {
   safeDivide,
   calculateCTR,

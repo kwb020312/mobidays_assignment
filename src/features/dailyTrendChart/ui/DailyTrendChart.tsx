@@ -21,7 +21,7 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from "@/shared/ui";
-import { useFilterStore } from "@/features/filter";
+import { useFilterStore } from "@/shared/stores";
 import { useFilteredDailyStats } from "../hooks/useFilteredDailyStats";
 import { MetricToggle } from "./MetricToggle";
 import { METRIC_OPTIONS, DEFAULT_METRICS, type DailyMetric } from "../types";

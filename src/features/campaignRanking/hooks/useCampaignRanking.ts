@@ -4,7 +4,7 @@ import {
   useFilterStore,
   selectEffectiveStatus,
   selectEffectivePlatform,
-} from "@/features/filter";
+} from "@/shared/stores";
 import { useCampaignStore } from "@/entities/campaign";
 import { useDailyStatStore } from "@/entities/dailyStat";
 import {

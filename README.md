@@ -180,13 +180,19 @@ src/
 ├── styles/
 │   └── globals.css              # 전역 스타일 (Tailwind)
 │
+├── app/                          # 앱 레벨 설정
+│   └── providers/
+│       └── DataProvider.tsx     # 데이터 초기화 프로바이더
+│
 ├── entities/                     # 비즈니스 엔티티 (도메인 모델)
 │   ├── campaign/                # 캠페인 엔티티
 │   │   ├── api.ts              # API 호출 함수
+│   │   ├── store.ts            # 캠페인 상태 (Zustand)
 │   │   ├── types.ts            # 타입 정의
 │   │   └── index.ts            # 배럴 파일
 │   └── dailyStat/               # 일별 통계 엔티티
 │       ├── api.ts
+│       ├── store.ts            # 일별 통계 상태 (Zustand)
 │       ├── types.ts
 │       └── index.ts
 │
@@ -197,9 +203,8 @@ src/
 │   │   │   ├── DateRangePicker.tsx
 │   │   │   ├── DatePresets.tsx
 │   │   │   └── MultiSelect.tsx
-│   │   ├── store.ts            # 필터 상태 (Zustand)
 │   │   ├── constants/          # 필터 옵션 상수
-│   │   ├── types.ts
+│   │   ├── types/
 │   │   └── index.ts
 │   │
 │   ├── dailyTrendChart/         # 일별 추이 차트 기능
@@ -208,7 +213,25 @@ src/
 │   │   │   └── MetricToggle.tsx
 │   │   ├── hooks/              # 필터링된 데이터 훅
 │   │   ├── lib/                # 포맷팅 유틸
-│   │   ├── types.ts
+│   │   ├── types/
+│   │   └── index.ts
+│   │
+│   ├── platformChart/           # 플랫폼별 성과 차트 (선택 과제)
+│   │   ├── ui/
+│   │   │   ├── PlatformChart.tsx
+│   │   │   └── PlatformMetricToggle.tsx
+│   │   ├── hooks/
+│   │   ├── constants/
+│   │   ├── types/
+│   │   └── index.ts
+│   │
+│   ├── campaignRanking/         # 캠페인 랭킹 Top3 (선택 과제)
+│   │   ├── ui/
+│   │   │   ├── CampaignRankingChart.tsx
+│   │   │   └── RankingMetricToggle.tsx
+│   │   ├── hooks/
+│   │   ├── constants/
+│   │   ├── types/
 │   │   └── index.ts
 │   │
 │   └── campaignTable/           # 캠페인 테이블 기능
@@ -221,7 +244,7 @@ src/
 │       │   └── calculations.ts  # 파생 지표 계산 (CTR, CPC, ROAS)
 │       ├── schema.ts           # Zod 유효성 검사 스키마
 │       ├── constants/
-│       ├── types.ts
+│       ├── types/
 │       └── index.ts
 │
 └── shared/                       # 공유 리소스
@@ -229,12 +252,12 @@ src/
     ├── api/
     │   └── client.ts           # API 클라이언트
     ├── stores/
-    │   └── dataStore.ts        # 전역 데이터 스토어
-    ├── providers/
-    │   └── DataProvider.tsx    # 데이터 초기화 프로바이더
+    │   └── filterStore.ts      # 필터 상태 (Zustand)
     ├── lib/
     │   ├── utils.ts            # 유틸리티 (cn 함수 등)
-    │   └── formatters.ts       # 데이터 포맷팅 함수
+    │   ├── formatters.ts       # 데이터 포맷팅 함수
+    │   ├── dataFilter.ts       # 데이터 필터링 유틸
+    │   └── metrics.ts          # 파생 지표 계산 (safeDivide 등)
     ├── constants/
     └── types/                   # 공통 타입 정의
 ```
@@ -272,8 +295,9 @@ App → features → entities → shared
 
 ```
 전역 상태 (Zustand)
-├── dataStore: 서버 데이터 (campaigns, dailyStats)
-└── filterStore: 필터 조건 (dateRange, status, platform)
+├── entities/campaign/store: 캠페인 데이터
+├── entities/dailyStat/store: 일별 통계 데이터
+└── shared/stores/filterStore: 필터 조건 (dateRange, status, platform)
 
 지역 상태 (useState)
 ├── 테이블: 검색어, 정렬, 페이지네이션, 선택된 행
@@ -287,7 +311,8 @@ App → features → entities → shared
 
 ```typescript
 // 필요한 상태만 선택적으로 구독
-const campaigns = useDataStore((state) => state.campaigns);
+const campaigns = useCampaignStore((state) => state.campaigns);
+const dailyStats = useDailyStatStore((state) => state.dailyStats);
 const dateRange = useFilterStore((state) => state.dateRange);
 
 // Selector를 통한 파생 상태 계산
@@ -297,14 +322,14 @@ const effectiveStatus = useFilterStore(selectEffectiveStatus);
 ### 2. 데이터 흐름
 
 ```
-[API] → [dataStore] → [Custom Hooks] → [UI Components]
-                ↑
-         [filterStore] ─────────────────┘
+[API] → [entities/*/store] → [Custom Hooks] → [UI Components]
+                   ↑
+         [shared/filterStore] ───────────────────┘
 ```
 
-1. **DataProvider**: 앱 마운트 시 API에서 데이터 로드 → dataStore 저장
-2. **filterStore**: 사용자 필터 조건 관리
-3. **Custom Hooks**: 두 store를 조합하여 필터링된 데이터 계산
+1. **DataProvider**: 앱 마운트 시 API에서 데이터 로드 → entities 레이어의 store에 저장
+2. **filterStore**: 사용자 필터 조건 관리 (shared 레이어)
+3. **Custom Hooks**: entities store와 filterStore를 조합하여 필터링된 데이터 계산
 4. **UI Components**: 훅에서 받은 데이터 렌더링
 
 ### 3. 데이터 전처리 및 예외 처리
@@ -356,8 +381,8 @@ export function calculateCTR(
 ```typescript
 // useFilteredCampaigns: 필터링 + 지표 계산 로직 캡슐화
 export function useFilteredCampaigns() {
-  const campaigns = useDataStore((state) => state.campaigns);
-  const dailyStats = useDataStore((state) => state.dailyStats);
+  const campaigns = useCampaignStore((state) => state.campaigns);
+  const dailyStats = useDailyStatStore((state) => state.dailyStats);
   const dateRange = useFilterStore((state) => state.dateRange);
   // ... 필터링 및 계산 로직
 

@@ -13,7 +13,7 @@ import {
   ChartTooltipContent,
 } from "@/shared/ui";
 import { cn, formatNumber } from "@/shared/lib";
-import { useFilterStore } from "@/features/filter";
+import { useFilterStore } from "@/shared/stores";
 import type { Platform } from "@/shared/types";
 import { usePlatformStats } from "../hooks/usePlatformStats";
 import { PlatformMetricToggle } from "./PlatformMetricToggle";
