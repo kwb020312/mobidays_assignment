@@ -175,92 +175,30 @@ const status = useFilterStore((state) => state.status); // status 변경 시만 
 
 ```
 src/
-├── main.tsx                      # 애플리케이션 진입점
-├── App.tsx                       # 루트 컴포넌트
-├── styles/
-│   └── globals.css              # 전역 스타일 (Tailwind)
-│
-├── app/                          # 앱 레벨 설정
-│   └── providers/
-│       └── DataProvider.tsx     # 데이터 초기화 프로바이더
-│
-├── entities/                     # 비즈니스 엔티티 (도메인 모델)
-│   ├── campaign/                # 캠페인 엔티티
-│   │   ├── api.ts              # API 호출 함수
-│   │   ├── store.ts            # 캠페인 상태 (Zustand)
-│   │   ├── types.ts            # 타입 정의
-│   │   └── index.ts            # 배럴 파일
-│   └── dailyStat/               # 일별 통계 엔티티
-│       ├── api.ts
-│       ├── store.ts            # 일별 통계 상태 (Zustand)
-│       ├── types.ts
-│       └── index.ts
-│
-├── features/                     # 기능 모듈 (사용자 상호작용 단위)
-│   ├── filter/                  # 글로벌 필터 기능
-│   │   ├── ui/                 # UI 컴포넌트
-│   │   │   ├── GlobalFilter.tsx
-│   │   │   ├── DateRangePicker.tsx
-│   │   │   ├── DatePresets.tsx
-│   │   │   └── MultiSelect.tsx
-│   │   ├── constants/          # 필터 옵션 상수
-│   │   ├── types/
-│   │   └── index.ts
-│   │
-│   ├── dailyTrendChart/         # 일별 추이 차트 기능
-│   │   ├── ui/
-│   │   │   ├── DailyTrendChart.tsx
-│   │   │   └── MetricToggle.tsx
-│   │   ├── hooks/              # 필터링된 데이터 훅
-│   │   ├── lib/                # 포맷팅 유틸
-│   │   ├── types/
-│   │   └── index.ts
-│   │
-│   ├── platformChart/           # 플랫폼별 성과 차트 (선택 과제)
-│   │   ├── ui/
-│   │   │   ├── PlatformChart.tsx
-│   │   │   └── PlatformMetricToggle.tsx
-│   │   ├── hooks/
-│   │   ├── constants/
-│   │   ├── types/
-│   │   └── index.ts
-│   │
-│   ├── campaignRanking/         # 캠페인 랭킹 Top3 (선택 과제)
-│   │   ├── ui/
-│   │   │   ├── CampaignRankingChart.tsx
-│   │   │   └── RankingMetricToggle.tsx
-│   │   ├── hooks/
-│   │   ├── constants/
-│   │   ├── types/
-│   │   └── index.ts
-│   │
-│   └── campaignTable/           # 캠페인 테이블 기능
-│       ├── ui/
-│       │   ├── CampaignTable.tsx
-│       │   └── CampaignRegistrationModal.tsx
-│       ├── hooks/
-│       │   └── useFilteredCampaigns.ts
-│       ├── lib/
-│       │   └── calculations.ts  # 파생 지표 계산 (CTR, CPC, ROAS)
-│       ├── schema.ts           # Zod 유효성 검사 스키마
-│       ├── constants/
-│       ├── types/
-│       └── index.ts
-│
-└── shared/                       # 공유 리소스
-    ├── ui/                      # 공통 UI 컴포넌트
-    ├── api/
-    │   └── client.ts           # API 클라이언트
-    ├── stores/
-    │   └── filterStore.ts      # 필터 상태 (Zustand)
-    ├── lib/
-    │   ├── utils.ts            # 유틸리티 (cn 함수 등)
-    │   ├── formatters.ts       # 데이터 포맷팅 함수
-    │   ├── dataFilter.ts       # 데이터 필터링 유틸
-    │   └── metrics.ts          # 파생 지표 계산 (safeDivide 등)
-    ├── constants/
-    └── types/                   # 공통 타입 정의
+├── app/                    # 앱 레벨 설정 (providers)
+├── entities/               # 도메인 모델 (campaign, dailyStat)
+│   └── campaign/
+│       ├── api.ts         # API 호출
+│       ├── store.ts       # Zustand 상태
+│       └── types.ts
+├── features/               # 기능 모듈
+│   ├── filter/            # 글로벌 필터
+│   ├── dailyTrendChart/   # 일별 추이 차트
+│   ├── platformChart/     # 플랫폼별 성과 (선택)
+│   ├── campaignRanking/   # 캠페인 랭킹 (선택)
+│   └── campaignTable/     # 캠페인 테이블
+│       ├── ui/            # UI 컴포넌트
+│       ├── hooks/         # 데이터 로직
+│       ├── lib/           # 지표 계산 함수
+│       └── schema.ts      # Zod 검증 스키마
+└── shared/                 # 공유 리소스
+    ├── ui/                # 공통 UI
+    ├── stores/            # filterStore (cross-cutting)
+    ├── lib/               # 유틸리티 (formatters, metrics)
+    └── types/
 ```
+
+> 각 feature는 `ui/`, `hooks/`, `lib/`, `types/` 하위 구조를 가지며, `campaignTable`을 예시로 표기했습니다.
 
 ### 레이어별 역할과 의존성 규칙
 
@@ -433,44 +371,18 @@ export function calculateROAS(
 ): number | null;
 ```
 
-### 2. 상태 관리 전략
+### 2. 데이터 흐름 및 상태 분리
 
-#### 전역 상태 vs 지역 상태 분리
+#### 전역 상태 vs 지역 상태
 
-```
-전역 상태 (Zustand) - 여러 컴포넌트가 공유
-├── entities/campaign/store    → 5개 feature에서 참조
-├── entities/dailyStat/store   → 4개 feature에서 참조
-└── shared/stores/filterStore  → 5개 feature에서 참조
+| 구분 | 상태 | 사용처 |
+|------|------|--------|
+| **전역** (Zustand) | campaign/dailyStat store, filterStore | 여러 feature에서 공유 |
+| **지역** (useState) | 검색어, 정렬, 페이지, 메트릭 선택 | 해당 컴포넌트 내부 |
 
-지역 상태 (useState) - 해당 컴포넌트에서만 사용
-├── 테이블: 검색어, 정렬, 페이지, 선택된 행
-├── 차트: 선택된 메트릭 (impressions/clicks)
-└── 모달: open/close, 폼 입력값
-```
+**분리 기준**: "이 상태가 변경되면 다른 컴포넌트도 업데이트되어야 하는가?"
 
-**선택 기준**: "이 상태가 변경되면 다른 컴포넌트도 업데이트되어야 하는가?"
-
-- Yes → 전역 상태 (Zustand)
-- No → 지역 상태 (useState)
-
-예시: 테이블 검색어는 테이블에만 영향 → useState, 필터 조건은 모든 차트에 영향 → Zustand
-
-#### 선택적 구독으로 리렌더링 최적화
-
-```typescript
-// ❌ 비효율: 전체 store 구독 → 모든 상태 변경 시 리렌더링
-const store = useFilterStore();
-
-// ✅ 효율: 필요한 상태만 구독 → 해당 상태 변경 시만 리렌더링
-const dateRange = useFilterStore((state) => state.dateRange);
-const status = useFilterStore((state) => state.status);
-
-// ✅ Selector로 파생 상태 계산 (메모이제이션 효과)
-const effectiveStatus = useFilterStore(selectEffectiveStatus);
-```
-
-### 3. 데이터 흐름
+#### 데이터 흐름 다이어그램
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌─────────────┐
@@ -585,15 +497,6 @@ export const campaignFormSchema = z
     path: ["cost"],
   });
 ```
-
-#### 왜 Zod + React Hook Form인가?
-
-| 대안                      | 장점                     | 단점                                |
-| ------------------------- | ------------------------ | ----------------------------------- |
-| useState + 직접 검증      | 라이브러리 의존 없음     | 모든 검증 로직 직접 작성, 타입 중복 |
-| **React Hook Form + Zod** | Uncontrolled + 타입 추론 | 추가 라이브러리 필요                |
-
-**선택 근거**: 이 폼은 6개 필드에 크로스 필드 검증(예산↔집행금액, 시작일↔종료일)이 필요합니다. Zod의 `.refine()`으로 스키마 레벨에서 선언적으로 처리하면 useEffect + 상태 동기화 코드가 불필요해집니다.
 
 ---
 
