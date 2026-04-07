@@ -247,7 +247,7 @@ export function CampaignTable() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex min-h-[540px] flex-col">
+        <div className="flex min-h-[600px] flex-col">
           {isEmpty ? (
             <div className="flex flex-1 items-center justify-center text-muted-foreground">
               선택한 조건에 해당하는 캠페인이 없습니다.

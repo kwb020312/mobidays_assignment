@@ -594,4 +594,51 @@ REQUIREMENTS.md 3.4 캠페인 등록 모달 구현:
 
 ---
 
+### 2026-04-07: 플랫폼별 성과 차트 구현 (4.1 선택 과제)
+
+**프롬프트:**
+
+```
+REQUIREMENTS.md 4.1 플랫폼별 성과 차트(Donut) 구현:
+- 메트릭 토글: 비용 / 노출수 / 클릭수 / 전환수 (기본값: 비용)
+- 차트: 플랫폼별(Google / Meta / Naver) 비중 표시
+- 메트릭 수치와 비중(%) 동시 표기
+- 차트 클릭 시 글로벌 필터와 양방향 연동
+```
+
+**AI 작업 내용:**
+
+- `features/platformChart` 모듈 생성 (Feature-based 구조)
+  - `types/index.ts`: PlatformMetric, PlatformStat 타입 정의
+  - `constants/index.ts`: 메트릭 옵션, 플랫폼 색상, 차트 설정
+  - `hooks/usePlatformStats.ts`: 플랫폼별 데이터 집계 훅
+  - `ui/PlatformMetricToggle.tsx`: 메트릭 선택 토글
+  - `ui/PlatformChart.tsx`: Recharts PieChart 기반 Donut 차트
+- 공통 캠페인 필터링 유틸 함수 분리 (`shared/lib/campaignFilter.ts`)
+  - `getFilteredCampaignIds()`: 필터 조건에 맞는 캠페인 ID Set 반환
+  - `getFilteredCampaigns()`: 필터 조건에 맞는 캠페인 배열 반환
+  - `filterDailyStatsByDate()`: 날짜 범위 필터링
+  - `getFilteredDailyStats()`: 캠페인 ID + 날짜 범위 필터링
+- 기존 `useFilteredDailyStats`, `useFilteredCampaigns` 훅 리팩토링 (공통 유틸 사용)
+- 대시보드 레이아웃 변경 (일별 추이 차트 | 플랫폼 차트 2열 배치)
+
+**의사결정:**
+
+- Recharts PieChart + innerRadius로 Donut 차트 구현 (기존 차트 라이브러리 일관성)
+- 양방향 필터 연동은 Zustand `togglePlatform` 재활용 (새 로직 불필요)
+- 캠페인 필터링 로직이 3개 훅에서 중복되어 공통 유틸로 분리 (DRY 원칙)
+- `isPlatformSelected` 헬퍼 함수로 opacity 삼항연산자 가독성 개선
+
+**수정 사항:**
+
+- AI가 제안한 `useMemo` 제거 (React Compiler 1.0 자동 메모이제이션)
+- 상수를 `types.ts`에서 `constants/index.ts`로 분리 (사용자 요청)
+- 파일명 `campaign-filter.ts`를 `campaignFilter.ts`로 camelCase 변경 (사용자 요청)
+- `chartConfig`를 컴포넌트 내부에서 상수로 분리 (사용자 요청)
+- opacity 삼항연산자를 `isSelected` 변수로 분리하여 유지보수성 개선 (사용자 요청)
+- 툴팁에 플랫폼별 색상 인디케이터 및 퍼센테이지 추가 (사용자 요청)
+- `types.ts`를 `types/index.ts` 폴더 구조로 변경 (다른 폴더들과 일관성 유지, 사용자 요청)
+
+---
+
 <!-- AI_LOG_MARKER: 새 기록은 이 위에 추가됩니다 -->

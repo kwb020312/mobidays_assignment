@@ -9,3 +9,11 @@ export {
   formatDate,
   formatDateRange,
 } from "./formatters";
+export {
+  getFilteredCampaignIds,
+  getFilteredCampaigns,
+  filterDailyStatsByDate,
+  getFilteredDailyStats,
+  type CampaignFilterParams,
+  type DailyStatFilterParams,
+} from "./campaignFilter";

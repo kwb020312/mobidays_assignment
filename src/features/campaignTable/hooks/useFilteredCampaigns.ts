@@ -1,13 +1,16 @@
 "use client";
 
-import { parseISO, isWithinInterval } from "date-fns";
 import {
   useFilterStore,
   selectEffectiveStatus,
   selectEffectivePlatform,
 } from "@/features/filter";
 import { useDataStore } from "@/shared/stores";
-import { normalizeDate } from "@/shared/lib";
+import {
+  normalizeDate,
+  getFilteredCampaigns,
+  filterDailyStatsByDate,
+} from "@/shared/lib";
 import type { DailyStat } from "@/entities/dailyStat";
 import type { CampaignTableRow } from "../types";
 import {
@@ -27,20 +30,12 @@ export function useFilteredCampaigns() {
   const effectiveStatus = useFilterStore(selectEffectiveStatus);
   const effectivePlatform = useFilterStore(selectEffectivePlatform);
 
-  // campaignId별로 dailyStats 그룹화 (날짜 필터 적용)
+  // 날짜 필터 적용된 dailyStats
+  const filteredDailyStats = filterDailyStatsByDate(dailyStats, dateRange);
+
+  // campaignId별로 dailyStats 그룹화
   const statsByCampaignId = new Map<string, DailyStat[]>();
-  for (const stat of dailyStats) {
-    const normalizedDate = normalizeDate(stat.date);
-    if (!normalizedDate) continue;
-
-    // 날짜 필터
-    const statDate = parseISO(normalizedDate);
-    if (
-      !isWithinInterval(statDate, { start: dateRange.from, end: dateRange.to })
-    ) {
-      continue;
-    }
-
+  for (const stat of filteredDailyStats) {
     const existing = statsByCampaignId.get(stat.campaignId);
     if (existing) {
       existing.push(stat);
@@ -49,30 +44,16 @@ export function useFilteredCampaigns() {
     }
   }
 
-  const tableData: CampaignTableRow[] = campaigns
-    .filter((campaign) => {
-      // 상태 필터
-      if (!effectiveStatus.has(campaign.status)) return false;
-      // 플랫폼 필터
-      if (!effectivePlatform.has(campaign.platform)) return false;
+  // 공통 유틸로 필터링된 캠페인 조회
+  const filteredCampaignList = getFilteredCampaigns({
+    campaigns,
+    dateRange,
+    effectiveStatus,
+    effectivePlatform,
+  });
 
-      // 시작일이 없으면 필터에서 제외
-      const normalizedStartDate = normalizeDate(campaign.startDate);
-      if (!normalizedStartDate) return false;
-
-      // 집행 기간 필터: 캠페인 기간과 필터 기간이 겹치는지 확인
-      const campaignStart = parseISO(normalizedStartDate);
-      const normalizedEndDate = normalizeDate(campaign.endDate);
-      const campaignEnd = normalizedEndDate
-        ? parseISO(normalizedEndDate)
-        : new Date(2099, 11, 31);
-
-      const hasOverlap =
-        campaignStart <= dateRange.to && campaignEnd >= dateRange.from;
-
-      return hasOverlap;
-    })
-    .map((campaign): CampaignTableRow => {
+  const tableData: CampaignTableRow[] = filteredCampaignList.map(
+    (campaign): CampaignTableRow => {
       const stats = statsByCampaignId.get(campaign.id) || [];
       const metrics = aggregateMetrics(stats);
 
@@ -88,7 +69,8 @@ export function useFilteredCampaigns() {
         cpc: calculateCPC(metrics.totalCost, metrics.totalClicks),
         roas: calculateROAS(metrics.totalConversionsValue, metrics.totalCost),
       };
-    });
+    }
+  );
 
   return {
     data: tableData,

@@ -1,5 +1,6 @@
 import { GlobalFilter } from "@/features/filter";
 import { DailyTrendChart } from "@/features/dailyTrendChart";
+import { PlatformChart } from "@/features/platformChart";
 import { CampaignTable } from "@/features/campaignTable";
 
 export default function DashboardPage() {
@@ -14,10 +15,12 @@ export default function DashboardPage() {
       <main className="container mx-auto space-y-6 p-4 md:p-6">
         <GlobalFilter />
 
-        <div className="grid gap-6">
+        <div className="grid gap-6 lg:grid-cols-2">
           <DailyTrendChart />
-          <CampaignTable />
+          <PlatformChart />
         </div>
+
+        <CampaignTable />
       </main>
     </div>
   );
