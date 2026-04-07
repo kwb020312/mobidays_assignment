@@ -15,6 +15,14 @@ export {
   getFilteredCampaigns,
   filterDailyStatsByDate,
   getFilteredDailyStats,
+  aggregateByCampaign,
   type CampaignFilterParams,
   type DailyStatFilterParams,
+  type CampaignAggregation,
 } from "./campaignFilter";
+export {
+  safeDivide,
+  calculateCTR,
+  calculateCPC,
+  calculateROAS,
+} from "./metrics";

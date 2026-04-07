@@ -100,3 +100,50 @@ export function getFilteredDailyStats({
     return isWithinInterval(statDate, { start: dateRange.from, end: dateRange.to });
   });
 }
+
+// 캠페인별 집계 결과 타입
+export interface CampaignAggregation {
+  campaignId: string;
+  totalCost: number;
+  totalImpressions: number;
+  totalClicks: number;
+  totalConversions: number;
+  totalConversionsValue: number;
+}
+
+/**
+ * DailyStat 배열을 캠페인별로 집계
+ */
+export function aggregateByCampaign(
+  dailyStats: DailyStat[]
+): Map<string, CampaignAggregation> {
+  const aggregation = new Map<string, CampaignAggregation>();
+
+  for (const stat of dailyStats) {
+    const existing = aggregation.get(stat.campaignId);
+    const cost = typeof stat.cost === "number" ? stat.cost : 0;
+    const impressions = typeof stat.impressions === "number" ? stat.impressions : 0;
+    const clicks = typeof stat.clicks === "number" ? stat.clicks : 0;
+    const conversions = typeof stat.conversions === "number" ? stat.conversions : 0;
+    const conversionsValue = typeof stat.conversionsValue === "number" ? stat.conversionsValue : 0;
+
+    if (existing) {
+      existing.totalCost += cost;
+      existing.totalImpressions += impressions;
+      existing.totalClicks += clicks;
+      existing.totalConversions += conversions;
+      existing.totalConversionsValue += conversionsValue;
+    } else {
+      aggregation.set(stat.campaignId, {
+        campaignId: stat.campaignId,
+        totalCost: cost,
+        totalImpressions: impressions,
+        totalClicks: clicks,
+        totalConversions: conversions,
+        totalConversionsValue: conversionsValue,
+      });
+    }
+  }
+
+  return aggregation;
+}
