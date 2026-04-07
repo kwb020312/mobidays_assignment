@@ -23,7 +23,7 @@ import {
 } from "@/shared/ui";
 import { cn } from "@/shared/lib";
 import { ALL_PLATFORMS, PLATFORM_LABELS, type Platform } from "@/shared/types";
-import { useDataStore } from "@/shared/stores";
+import { useCampaignStore } from "@/entities/campaign";
 import {
   CALENDAR_START_MONTH,
   CALENDAR_END_MONTH,
@@ -45,7 +45,7 @@ export function CampaignRegistrationModal() {
   const [open, setOpen] = useState(false);
   const [budgetDisplay, setBudgetDisplay] = useState("");
   const [costDisplay, setCostDisplay] = useState("");
-  const addCampaign = useDataStore((state) => state.addCampaign);
+  const addCampaign = useCampaignStore((state) => state.addCampaign);
 
   const {
     register,

@@ -25,7 +25,7 @@ import {
   ALL_STATUSES,
   type CampaignStatus,
 } from "@/shared/types";
-import { useDataStore } from "@/shared/stores";
+import { useCampaignStore } from "@/entities/campaign";
 import {
   formatCurrency,
   formatPercent,
@@ -41,7 +41,7 @@ import { CampaignRegistrationModal } from "./CampaignRegistrationModal";
 
 export function CampaignTable() {
   const { data, isEmpty } = useFilteredCampaigns();
-  const updateCampaign = useDataStore((state) => state.updateCampaign);
+  const updateCampaign = useCampaignStore((state) => state.updateCampaign);
 
   // 테이블 상태
   const [searchQuery, setSearchQuery] = useState("");

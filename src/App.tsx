@@ -1,4 +1,4 @@
-import { DataProvider } from "@/shared/providers";
+import { DataProvider } from "@/app/providers";
 import { GlobalFilter } from "@/features/filter";
 import { DailyTrendChart } from "@/features/dailyTrendChart";
 import { PlatformChart } from "@/features/platformChart";

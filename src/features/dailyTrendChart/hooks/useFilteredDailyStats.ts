@@ -5,7 +5,8 @@ import {
   selectEffectiveStatus,
   selectEffectivePlatform,
 } from "@/features/filter";
-import { useDataStore } from "@/shared/stores";
+import { useCampaignStore } from "@/entities/campaign";
+import { useDailyStatStore } from "@/entities/dailyStat";
 import {
   normalizeDate,
   normalizeNumber,
@@ -15,10 +16,10 @@ import {
 import type { AggregatedDailyStat } from "../types";
 
 export function useFilteredDailyStats() {
-  const campaigns = useDataStore((state) => state.campaigns);
-  const dailyStats = useDataStore((state) => state.dailyStats);
-  const isLoading = useDataStore((state) => state.isLoading);
-  const error = useDataStore((state) => state.error);
+  const campaigns = useCampaignStore((state) => state.campaigns);
+  const dailyStats = useDailyStatStore((state) => state.dailyStats);
+  const isLoading = useCampaignStore((state) => state.isLoading) || useDailyStatStore((state) => state.isLoading);
+  const error = useCampaignStore((state) => state.error) || useDailyStatStore((state) => state.error);
 
   const dateRange = useFilterStore((state) => state.dateRange);
   const effectiveStatus = useFilterStore(selectEffectiveStatus);

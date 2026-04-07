@@ -2,7 +2,7 @@
 import { RotateCcw } from "lucide-react";
 
 import { Button } from "@/shared/ui";
-import { useFilterStore } from "../store";
+import { useFilterStore } from "@/shared/stores";
 import { STATUS_OPTIONS, PLATFORM_OPTIONS } from "../constants";
 import { DateRangePicker } from "./DateRangePicker";
 import { DatePresets } from "./DatePresets";

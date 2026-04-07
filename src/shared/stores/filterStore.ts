@@ -1,8 +1,12 @@
 import { create } from "zustand";
 import { startOfMonth, endOfMonth } from "date-fns";
-import type { Platform, CampaignStatus } from "@/shared/types";
+import type {
+  Platform,
+  CampaignStatus,
+  FilterState,
+  DateRange,
+} from "@/shared/types";
 import { ALL_STATUSES, ALL_PLATFORMS } from "@/shared/types";
-import type { FilterState, DateRange } from "./types";
 
 function getInitialDateRange(): DateRange {
   const now = new Date();

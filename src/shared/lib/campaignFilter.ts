@@ -1,7 +1,5 @@
 import { parseISO, isWithinInterval } from "date-fns";
-import type { Campaign } from "@/entities/campaign";
-import type { DailyStat } from "@/entities/dailyStat";
-import type { Platform, CampaignStatus } from "@/shared/types";
+import type { Campaign, DailyStat, Platform, CampaignStatus } from "@/shared/types";
 import { normalizeDate } from "./formatters";
 
 export interface CampaignFilterParams {
