@@ -1,4 +1,3 @@
-"use client";
 
 import { RotateCcw } from "lucide-react";
 

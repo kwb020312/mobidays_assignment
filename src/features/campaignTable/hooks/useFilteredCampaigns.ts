@@ -1,4 +1,3 @@
-"use client";
 
 import { parseISO, isWithinInterval } from "date-fns";
 import {

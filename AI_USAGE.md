@@ -594,4 +594,51 @@ REQUIREMENTS.md 3.4 캠페인 등록 모달 구현:
 
 ---
 
+### 2026-04-07: 빌드 도구 전환 (Next.js → Vite)
+
+**프롬프트:**
+
+```
+REQUIREMENTS.md 기반으로 현재 기술 스택의 적합성을 분석해줘. 서버사이드 관련 작업이 불필요하기에 Next.js를 선택할 이유가 없어
+- 현재 구현: CSR 기반 데이터 패칭, 단일 페이지 대시보드
+- 검토 필요: SSR/SSG 활용 가능성, 빌드 도구 최적화
+분석 결과에 따라 기술 스택 조정이 필요하면 React(Vite)기반의 SPA로 마이그레이션 진행
+```
+
+**AI 작업 내용:**
+
+- REQUIREMENTS.md 기반 기술 선택 적합성 분석
+- Next.js → Vite + React 전환 작업 수행
+  - `package.json`: next 제거, vite + @vitejs/plugin-react + @tailwindcss/vite 추가
+  - `vite.config.ts`: 새로 생성 (path alias, Tailwind 플러그인 설정)
+  - `index.html`: 새로 생성 (SPA 진입점)
+  - `src/main.tsx`: 새로 생성 (React DOM 렌더링)
+  - `src/App.tsx`: 기존 page.tsx + layout.tsx 통합
+  - `src/styles/globals.css`: app/globals.css에서 이동
+  - `tsconfig.json`: Vite용으로 수정
+  - `components.json`: rsc: false, 경로 수정
+- Next.js 관련 파일 제거 (next.config.ts, next-env.d.ts, postcss.config.mjs, src/app/)
+- 모든 파일에서 `"use client"` 지시문 제거 (22개 파일)
+- README.md에 "기술 선택의 재고" 섹션 추가
+
+**의사결정:**
+
+- **CSR이 적합한 이유 분석**:
+  - json-server 기반 API → 빌드 타임 데이터 없음 (SSG 불가)
+  - 실시간 필터/차트 동기화 → 클라이언트 상태 기반 (SSR 이점 없음)
+  - 캠페인 등록 후 즉시 반영 → 클라이언트 상태 관리 필수
+  - 단일 페이지 대시보드 → 복잡한 라우팅 불필요
+  - 내부 도구 → SEO 불필요
+- **전환 판단**: 요구사항에 맞지 않는 기술을 고집하기보다, 분석 후 적합한 도구로 전환하는 것이 올바른 엔지니어링 판단
+- **Vite 선택 이유**: 빠른 HMR, 간단한 설정, 필요한 기능만 포함
+
+**수정 사항:**
+
+- README.md의 Zustand 선택 근거를 Redux 대신 Context API와 비교하도록 수정 (사용자 피드백)
+  - Context를 잘게 쪼개면 Provider 중첩으로 유지보수성 저하
+  - 통합 Context는 한 상태 변경 시 모든 구독 컴포넌트 리렌더링
+  - Zustand의 선택적 구독으로 이 문제 해결
+
+---
+
 <!-- AI_LOG_MARKER: 새 기록은 이 위에 추가됩니다 -->

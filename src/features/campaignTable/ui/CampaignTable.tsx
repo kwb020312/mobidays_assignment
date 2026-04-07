@@ -1,4 +1,3 @@
-"use client";
 
 import { useState } from "react";
 import { ArrowUp } from "lucide-react";
@@ -289,7 +288,7 @@ export function CampaignTable() {
                       <TableCell>
                         <Checkbox
                           checked={selectedIds.has(row.id)}
-                          onCheckedChange={(checked) =>
+                          onCheckedChange={(checked: boolean) =>
                             handleSelectRow(row.id, checked === true)
                           }
                         />
