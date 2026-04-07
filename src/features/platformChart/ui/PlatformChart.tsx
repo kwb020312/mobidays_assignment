@@ -12,7 +12,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/shared/ui";
-import { formatNumber } from "@/shared/lib";
+import { cn, formatNumber } from "@/shared/lib";
 import { useFilterStore } from "@/features/filter";
 import type { Platform } from "@/shared/types";
 import { usePlatformStats } from "../hooks/usePlatformStats";
@@ -43,6 +43,7 @@ export function PlatformChart() {
   const metricLabel =
     PLATFORM_METRIC_OPTIONS.find((opt) => opt.key === selectedMetric)?.label ||
     "";
+  const metricUnit = selectedMetric === "cost" ? "원" : "회";
 
   const handlePieClick = (platform: Platform) => {
     togglePlatform(platform);
@@ -86,10 +87,11 @@ export function PlatformChart() {
             선택한 조건에 해당하는 데이터가 없습니다.
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            {/* 좌측: 도넛 차트 */}
             <ChartContainer
               config={PLATFORM_CHART_CONFIG}
-              className="mx-auto aspect-square h-[250px]"
+              className="aspect-square h-[280px] flex-1"
             >
               <PieChart>
                 <ChartTooltip
@@ -106,7 +108,7 @@ export function PlatformChart() {
                             <span>{name}</span>
                             <span className="font-medium">
                               {formatNumber(value as number)}
-                              {selectedMetric === "cost" ? "원" : "회"} ({percentage.toFixed(1)}%)
+                              {metricUnit} ({percentage.toFixed(1)}%)
                             </span>
                           </div>
                         );
@@ -118,25 +120,23 @@ export function PlatformChart() {
                   data={data}
                   dataKey="value"
                   nameKey="platform"
-                  innerRadius={60}
-                  outerRadius={100}
+                  innerRadius={70}
+                  outerRadius={110}
                   paddingAngle={2}
                   onClick={(_, index) => handlePieClick(data[index].platform)}
                   style={{ cursor: "pointer" }}
                 >
-                  {data.map((entry) => {
-                    const isSelected = isPlatformSelected(
-                      entry.platform,
-                      selectedPlatforms
-                    );
-                    return (
-                      <Cell
-                        key={entry.platform}
-                        fill={entry.fill}
-                        opacity={isSelected ? 1 : 0.3}
-                      />
-                    );
-                  })}
+                  {data.map((entry) => (
+                    <Cell
+                      key={entry.platform}
+                      fill={entry.fill}
+                      opacity={
+                        isPlatformSelected(entry.platform, selectedPlatforms)
+                          ? 1
+                          : 0.3
+                      }
+                    />
+                  ))}
                   <Label
                     content={({ viewBox }) => {
                       if (viewBox && "cx" in viewBox && "cy" in viewBox) {
@@ -146,21 +146,9 @@ export function PlatformChart() {
                             y={viewBox.cy}
                             textAnchor="middle"
                             dominantBaseline="middle"
+                            className="fill-muted-foreground text-xs"
                           >
-                            <tspan
-                              x={viewBox.cx}
-                              y={viewBox.cy}
-                              className="fill-foreground text-xl font-bold"
-                            >
-                              {formatNumber(total)}
-                            </tspan>
-                            <tspan
-                              x={viewBox.cx}
-                              y={(viewBox.cy || 0) + 20}
-                              className="fill-muted-foreground text-sm"
-                            >
-                              {metricLabel}
-                            </tspan>
+                            {metricLabel}
                           </text>
                         );
                       }
@@ -170,34 +158,47 @@ export function PlatformChart() {
               </PieChart>
             </ChartContainer>
 
-            {/* 범례 */}
-            <div className="flex flex-wrap justify-center gap-4">
-              {data.map((item) => {
-                const isSelected = isPlatformSelected(
-                  item.platform,
-                  selectedPlatforms
-                );
-                return (
+            {/* 우측: 총액 + 순위별 범례 */}
+            <div className="flex flex-1 flex-col gap-3">
+              {/* 총액 */}
+              <div className="border-b pb-2">
+                <p className="text-xs text-muted-foreground">
+                  총 {metricLabel}
+                </p>
+                <p className="text-xl font-bold">
+                  {formatNumber(total)}
+                  <span className="ml-0.5 text-sm font-normal text-muted-foreground">
+                    {metricUnit}
+                  </span>
+                </p>
+              </div>
+
+              {/* 순위별 범례 */}
+              <div className="flex flex-col gap-1">
+                {data.map((item, index) => (
                   <button
                     key={item.platform}
                     onClick={() => handlePieClick(item.platform)}
-                    className={`flex items-center gap-2 rounded-md px-3 py-1.5 transition-opacity hover:bg-muted ${
-                      isSelected ? "opacity-100" : "opacity-50"
-                    }`}
+                    className={cn(
+                      "flex items-center gap-2 rounded px-2 py-1 text-left opacity-40 transition-opacity hover:bg-muted",
+                      isPlatformSelected(item.platform, selectedPlatforms) &&
+                        "opacity-100"
+                    )}
                   >
+                    <span className="w-4 text-xs text-muted-foreground">
+                      {index + 1}
+                    </span>
                     <span
-                      className="h-3 w-3 rounded-full"
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
                       style={{ backgroundColor: item.fill }}
                     />
-                    <span className="text-sm font-medium">{item.platform}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {formatNumber(item.value)}
-                      {selectedMetric === "cost" ? "원" : "회"} (
-                      {item.percentage.toFixed(1)}%)
+                    <span className="flex-1 text-sm">{item.platform}</span>
+                    <span className="text-sm font-medium">
+                      {item.percentage.toFixed(1)}%
                     </span>
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
           </div>
         )}

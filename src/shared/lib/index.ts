@@ -3,6 +3,7 @@ export {
   normalizeDate,
   normalizeNumber,
   formatNumber,
+  formatCompactNumber,
   formatCurrency,
   formatPercent,
   formatCPC,
