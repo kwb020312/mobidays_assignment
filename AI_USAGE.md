@@ -594,4 +594,101 @@ REQUIREMENTS.md 3.4 캠페인 등록 모달 구현:
 
 ---
 
+### 2026-04-07: 플랫폼별 성과 차트 구현 (4.1 선택 과제)
+
+**프롬프트:**
+
+```
+REQUIREMENTS.md 4.1 플랫폼별 성과 차트(Donut) 구현:
+- 메트릭 토글: 비용 / 노출수 / 클릭수 / 전환수 (기본값: 비용)
+- 차트: 플랫폼별(Google / Meta / Naver) 비중 표시
+- 메트릭 수치와 비중(%) 동시 표기
+- 차트 클릭 시 글로벌 필터와 양방향 연동
+```
+
+**AI 작업 내용:**
+
+- `features/platformChart` 모듈 생성 (Feature-based 구조)
+  - `types/index.ts`: PlatformMetric, PlatformStat 타입 정의
+  - `constants/index.ts`: 메트릭 옵션, 플랫폼 색상, 차트 설정
+  - `hooks/usePlatformStats.ts`: 플랫폼별 데이터 집계 훅
+  - `ui/PlatformMetricToggle.tsx`: 메트릭 선택 토글
+  - `ui/PlatformChart.tsx`: Recharts PieChart 기반 Donut 차트
+- 공통 캠페인 필터링 유틸 함수 분리 (`shared/lib/campaignFilter.ts`)
+  - `getFilteredCampaignIds()`: 필터 조건에 맞는 캠페인 ID Set 반환
+  - `getFilteredCampaigns()`: 필터 조건에 맞는 캠페인 배열 반환
+  - `filterDailyStatsByDate()`: 날짜 범위 필터링
+  - `getFilteredDailyStats()`: 캠페인 ID + 날짜 범위 필터링
+- 기존 `useFilteredDailyStats`, `useFilteredCampaigns` 훅 리팩토링 (공통 유틸 사용)
+- 대시보드 레이아웃 변경 (일별 추이 차트 | 플랫폼 차트 2열 배치)
+
+**의사결정:**
+
+- Recharts PieChart + innerRadius로 Donut 차트 구현 (기존 차트 라이브러리 일관성)
+- 양방향 필터 연동은 Zustand `togglePlatform` 재활용 (새 로직 불필요)
+- 캠페인 필터링 로직이 3개 훅에서 중복되어 공통 유틸로 분리 (DRY 원칙)
+- `isPlatformSelected` 헬퍼 함수로 opacity 삼항연산자 가독성 개선
+
+**수정 사항:**
+
+- AI가 제안한 `useMemo` 제거 (React Compiler 1.0 자동 메모이제이션)
+- 상수를 `types.ts`에서 `constants/index.ts`로 분리 (사용자 요청)
+- 파일명 `campaign-filter.ts`를 `campaignFilter.ts`로 camelCase 변경 (사용자 요청)
+- `chartConfig`를 컴포넌트 내부에서 상수로 분리 (사용자 요청)
+- opacity 삼항연산자를 `isSelected` 변수로 분리하여 유지보수성 개선 (사용자 요청)
+- 툴팁에 플랫폼별 색상 인디케이터 및 퍼센테이지 추가 (사용자 요청)
+- `types.ts`를 `types/index.ts` 폴더 구조로 변경 (다른 폴더들과 일관성 유지, 사용자 요청)
+
+---
+
+### 2026-04-07: 캠페인 랭킹 Top3 차트 구현 (4.2 선택 과제)
+
+**프롬프트:**
+
+```
+REQUIREMENTS.md 4.2 캠페인 랭킹 Top3 (Bar) 구현:
+- 메트릭 토글: ROAS / CTR / CPC 기준 전환 가능 (기본값: ROAS)
+- 선택한 메트릭 기준 상위 3개 캠페인 노출
+- 정렬 로직: ROAS/CTR은 높을수록 상위, CPC는 낮을수록 상위
+
+기존 아키텍처 일관성 유지:
+- Feature-based 구조 (features/campaignRanking)
+- 공통 필터링 유틸 재사용 (shared/lib/campaignFilter.ts)
+- 파생 지표 계산 로직 공유화 고려 (DRY 원칙)
+
+UI/UX 요구사항:
+- 플랫폼 차트와 동일 행에 2열 배치
+- 현대적이고 전문적인 디자인 (카드 리스트 형태, 순위별 시각적 구분)
+```
+
+**AI 작업 내용:**
+
+- `features/campaignRanking` 모듈 생성 (Feature-based 구조)
+  - `types/index.ts`: RankingMetric, RankingMetricOption, CampaignRankingStat 타입 정의
+  - `constants/index.ts`: 메트릭 옵션(ROAS/CTR/CPC), 순위별 스타일, 차트 설정
+  - `hooks/useCampaignRanking.ts`: 캠페인별 지표 계산 및 정렬 훅
+  - `ui/RankingMetricToggle.tsx`: 메트릭 선택 토글
+  - `ui/CampaignRankingChart.tsx`: 카드 리스트 형태의 랭킹 UI
+- 공유 라이브러리 추가/리팩토링
+  - `shared/lib/metrics.ts`: 파생 지표 계산 함수 (safeDivide, calculateCTR, calculateCPC, calculateROAS)
+  - `shared/lib/campaignFilter.ts`: `aggregateByCampaign()` 캠페인별 집계 함수 추가
+  - `features/campaignTable/lib/calculations.ts`: 중복 제거, 공유 라이브러리 re-export
+- 대시보드 레이아웃 변경 (일별 추이 전체 너비 | 플랫폼 차트 + 랭킹 차트 2열 배치)
+
+**의사결정:**
+
+- Bar 차트 대신 카드 리스트 형태로 현대적인 UI 구현 (단순 막대 그래프보다 정보 밀도 높음)
+- 순위별 컬러 뱃지 (금/은/동) + 프로그레스 바로 시각적 직관성 확보
+- ROAS/CTR은 높을수록 상위(내림차순), CPC는 낮을수록 상위(오름차순) 정렬 로직
+- 기존 safeDivide, 파생 지표 계산 함수들을 shared로 이동하여 중복 제거
+
+**수정 사항:**
+
+- AI가 훅 내부에 safeDivide 함수 중복 작성 → `shared/lib/metrics.ts`로 분리
+- AI가 훅 내부에 캠페인별 집계 로직 작성 → `aggregateByCampaign` 공유 함수로 분리
+- AI가 컴포넌트 내부에 RANK_STYLES 상수 정의 → `constants/index.ts`로 이동
+- AI가 제안한 Recharts Bar 차트를 카드 리스트 UI로 재설계
+
+---
+
 <!-- AI_LOG_MARKER: 새 기록은 이 위에 추가됩니다 -->
