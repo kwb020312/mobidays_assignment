@@ -1,4 +1,4 @@
-import { DataProvider } from "@/app/providers";
+import { DataProvider, ErrorBoundary } from "@/app/providers";
 import { GlobalFilter } from "@/features/filter";
 import { DailyTrendChart } from "@/features/dailyTrendChart";
 import { PlatformChart } from "@/features/platformChart";
@@ -7,7 +7,8 @@ import { CampaignTable } from "@/features/campaignTable";
 
 export default function App() {
   return (
-    <DataProvider>
+    <ErrorBoundary>
+      <DataProvider>
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
         <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
           <div className="container mx-auto flex h-14 items-center px-4">
@@ -28,6 +29,7 @@ export default function App() {
           <CampaignTable />
         </main>
       </div>
-    </DataProvider>
+      </DataProvider>
+    </ErrorBoundary>
   );
 }
