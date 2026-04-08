@@ -7,7 +7,7 @@ export interface CampaignTableRow {
   name: string;
   status: CampaignStatus;
   platform: Campaign["platform"];
-  startDate: string;
+  startDate: string | null;
   endDate: string | null;
   totalCost: number;      // 총 집행금액
   ctr: number | null;     // CTR (%)

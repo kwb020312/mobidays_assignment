@@ -42,7 +42,7 @@ export interface Campaign {
   platform: Platform;
   status: CampaignStatus;
   budget: number;
-  startDate: string; // YYYY-MM-DD
+  startDate: string | null; // YYYY-MM-DD
   endDate: string | null; // YYYY-MM-DD
 }
 

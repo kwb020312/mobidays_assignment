@@ -26,13 +26,8 @@ import {
   type CampaignStatus,
 } from "@/shared/types";
 import { useCampaignStore } from "@/entities/campaign";
-import {
-  formatCurrency,
-  formatPercent,
-  formatCPC,
-  formatDateRange,
-  cn,
-} from "@/shared/lib";
+import { formatDateRange, cn } from "@/shared/lib";
+import { formatCurrency, formatPercent, formatCPC } from "../lib/formatters";
 import { useFilteredCampaigns } from "../hooks/useFilteredCampaigns";
 import { STATUS_VARIANT } from "../constants";
 import type { SortableColumn, SortState } from "../types";

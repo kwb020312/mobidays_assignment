@@ -1,5 +1,5 @@
 import { api } from "@/shared/api";
-import { parseArray } from "@/shared/lib/formatters";
+import { parseArray } from "@/entities/lib/parseArray";
 import type { Campaign } from "./types";
 import { campaignSchema } from "./schema";
 

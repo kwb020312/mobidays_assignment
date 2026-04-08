@@ -687,4 +687,49 @@ REQUIREMENTS.md 2.3 "파생 지표 계산 및 전처리" 평가 항목 기준으
 
 ---
 
+### 2026-04-08: 유틸리티 함수 레이어 재배치 및 타입 일관성 개선
+
+**프롬프트:**
+
+```
+FSD 아키텍처 원칙에 따라 유틸리티 함수의 레이어 배치를 검토하고 리팩토링해줘:
+
+1. 현재 shared/lib/formatters.ts에 있는 함수들의 실제 사용처 분석
+2. entities 레이어에서만 사용되는 함수는 entities/lib로 이동
+3. 특정 feature에서만 사용되는 함수는 해당 feature/lib로 이동
+4. 여러 레이어에서 공유되는 함수만 shared에 유지
+
+추가로 Campaign.startDate 타입 처리의 일관성 검토:
+- endDate는 null 허용하면서 startDate만 필수로 처리하는 근거 확인
+- 요구사항에 명시되지 않은 임의 처리가 있다면 일관되게 수정
+```
+
+**AI 작업 내용:**
+
+- 유틸리티 함수 사용처 분석 및 레이어 재배치
+  - `normalizeDate`, `normalizeNumber` → `entities/lib/normalize.ts` (스키마 전용)
+  - `parseArray` → `entities/lib/parseArray.ts` (API 레이어 전용)
+  - `formatCurrency`, `formatPercent`, `formatCPC` → `features/campaignTable/lib/formatters.ts` (테이블 전용)
+  - `formatNumber`, `formatDateRange` → `shared/lib` 유지 (다중 feature 공유)
+- `Campaign.startDate` 타입을 `string | null`로 변경 (endDate와 동일한 처리)
+- `formatDateRange`에서 null 표시를 "진행중" → "미정"으로 변경
+- `dataFilter.ts`에서 startDate null 처리 추가
+- README.md 폴더 구조 간소화
+
+**의사결정:**
+
+- **레이어 배치 원칙**: 함수는 실제 사용되는 가장 낮은 레이어에 배치
+  - entities에서만 사용 → entities/lib
+  - 특정 feature에서만 사용 → features/{name}/lib
+  - 다중 레이어에서 공유 → shared/lib
+- **startDate 타입 변경 근거**: 요구사항 스키마상 endDate만 nullable이나, 실제 db.json에는 예외 데이터 존재 가능. name이 null이면 "(이름 없음)"으로 처리하면서 startDate가 null이면 캠페인 제외하는 것은 일관성 없음
+- **"미정" 표현 선택**: "진행중"은 요구사항에 없는 임의 해석. null은 "데이터 없음"이므로 "미정"이 의미적으로 정확
+
+**수정 사항:**
+
+- AI가 formatDateRange에서 "-"로 표시 제안 → "미정 ~ 미정" 형태가 어색하지 않도록 "미정" 표현으로 변경
+- README 폴더 구조를 AI가 모든 파일 나열 → 핵심 레이어만 표시하고 생략 기호 사용
+
+---
+
 <!-- AI_LOG_MARKER: 새 기록은 이 위에 추가됩니다 -->

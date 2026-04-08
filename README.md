@@ -177,12 +177,13 @@ React Query(TanStack Query)는 서버 상태 관리의 사실상 표준이지만
 
 Zod를 폼 검증뿐 아니라 **API 응답 정규화**에도 활용하여 데이터 안전성을 단일 레이어에서 보장합니다.
 
-| 활용 영역 | 선택 이유 | 트레이드오프 |
-| --- | --- | --- |
-| **폼 검증** (React Hook Form) | Uncontrolled 방식으로 필드 간 동적 의존성(예산↔집행금액)을 `.refine()`으로 선언적 처리 | Controlled 대비 폼 상태 직접 접근 불편 |
-| **API 정규화** (entities 스키마) | API 레이어에서 한 번만 정규화 → 비즈니스 로직에서 방어 코드 불필요 | 스키마 정의 추가 비용 |
+| 활용 영역                        | 선택 이유                                                                              | 트레이드오프                           |
+| -------------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------- |
+| **폼 검증** (React Hook Form)    | Uncontrolled 방식으로 필드 간 동적 의존성(예산↔집행금액)을 `.refine()`으로 선언적 처리 | Controlled 대비 폼 상태 직접 접근 불편 |
+| **API 정규화** (entities 스키마) | API 레이어에서 한 번만 정규화 → 비즈니스 로직에서 방어 코드 불필요                     | 스키마 정의 추가 비용                  |
 
 **API 정규화 없이 직접 구현했다면:**
+
 ```typescript
 // ❌ 비즈니스 로직 곳곳에서 방어 코드 필요
 const cost = typeof stat.cost === "number" ? stat.cost : 0;
@@ -191,6 +192,7 @@ if (!date) continue;
 ```
 
 **Zod 스키마로 해결:**
+
 ```typescript
 // ✅ API 레이어에서 한 번만 정규화, 이후 정규화된 데이터 신뢰
 const dailyStatSchema = z.object({
@@ -232,7 +234,7 @@ src/
 │       ├── api.ts         # API 호출 + 정규화
 │       ├── schema.ts      # Zod 정규화 스키마
 │       ├── store.ts       # Zustand 상태
-│       └── types.ts
+│       └── ...
 ├── features/               # 기능 모듈
 │   ├── filter/            # 글로벌 필터
 │   ├── dailyTrendChart/   # 일별 추이 차트

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { DailyStat } from "./types";
-import { normalizeDate, normalizeNumber } from "@/shared/lib/formatters";
+import { normalizeDate, normalizeNumber } from "@/entities/lib/normalize";
 
 export const dailyStatSchema = z
   .object({

@@ -33,7 +33,9 @@ export function getFilteredCampaignIds({
     if (!effectivePlatform.has(campaign.platform)) continue;
 
     // 집행 기간 필터: 캠페인 기간과 필터 기간이 겹치는지 확인
-    const campaignStart = parseISO(campaign.startDate);
+    const campaignStart = campaign.startDate
+      ? parseISO(campaign.startDate)
+      : new Date(1970, 0, 1);
     const campaignEnd = campaign.endDate
       ? parseISO(campaign.endDate)
       : new Date(2099, 11, 31);
