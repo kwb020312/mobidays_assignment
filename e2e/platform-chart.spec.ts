@@ -134,3 +134,193 @@ test.describe("캠페인 랭킹 차트", () => {
     await expect(page.locator("text=캠페인 랭킹 Top3")).toBeVisible();
   });
 });
+
+test.describe("캠페인 랭킹 정렬 방향 (평가 포인트)", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/");
+    await page.waitForSelector('[role="search"][aria-label="캠페인 필터"]');
+    await page.waitForSelector("text=캠페인 랭킹 Top3");
+  });
+
+  // 헬퍼 함수: 랭킹 카드에서 메트릭 값들을 추출
+  async function getRankingValues(
+    page: import("@playwright/test").Page
+  ): Promise<number[]> {
+    const rankingSection = page
+      .locator("text=캠페인 랭킹 Top3")
+      .locator("..")
+      .locator("..");
+    const valueElements = rankingSection.locator(".tabular-nums");
+    const count = await valueElements.count();
+
+    const values: number[] = [];
+    for (let i = 0; i < count; i++) {
+      const text = await valueElements.nth(i).textContent();
+      // 숫자와 소수점만 추출 (쉼표, 단위 제거)
+      const numericValue = parseFloat(text?.replace(/[^0-9.]/g, "") || "0");
+      if (!isNaN(numericValue)) {
+        values.push(numericValue);
+      }
+    }
+    return values;
+  }
+
+  test("ROAS는 높을수록 상위에 표시된다 (내림차순)", async ({ page }) => {
+    // ROAS가 기본값이므로 바로 확인
+    await expect(page.locator("text=ROAS 기준 상위 캠페인")).toBeVisible();
+
+    // 랭킹 값들이 표시될 때까지 대기
+    await page.waitForTimeout(500);
+
+    const values = await getRankingValues(page);
+
+    // 데이터가 있을 경우에만 정렬 검증
+    if (values.length >= 2) {
+      // 내림차순 정렬 확인: 첫 번째 값 >= 두 번째 값 >= ...
+      for (let i = 0; i < values.length - 1; i++) {
+        expect(values[i]).toBeGreaterThanOrEqual(values[i + 1]);
+      }
+    }
+  });
+
+  test("CTR은 높을수록 상위에 표시된다 (내림차순)", async ({ page }) => {
+    const rankingSection = page
+      .locator("text=캠페인 랭킹 Top3")
+      .locator("..")
+      .locator("..");
+
+    // CTR 버튼 클릭
+    await rankingSection.getByRole("button", { name: "CTR" }).click();
+    await expect(page.locator("text=CTR 기준 상위 캠페인")).toBeVisible();
+
+    await page.waitForTimeout(500);
+
+    const values = await getRankingValues(page);
+
+    // 데이터가 있을 경우에만 정렬 검증
+    if (values.length >= 2) {
+      // 내림차순 정렬 확인
+      for (let i = 0; i < values.length - 1; i++) {
+        expect(values[i]).toBeGreaterThanOrEqual(values[i + 1]);
+      }
+    }
+  });
+
+  test("CPC는 낮을수록 상위에 표시된다 (오름차순)", async ({ page }) => {
+    const rankingSection = page
+      .locator("text=캠페인 랭킹 Top3")
+      .locator("..")
+      .locator("..");
+
+    // CPC 버튼 클릭
+    await rankingSection.getByRole("button", { name: "CPC" }).click();
+    await expect(page.locator("text=CPC 기준 상위 캠페인")).toBeVisible();
+
+    await page.waitForTimeout(500);
+
+    const values = await getRankingValues(page);
+
+    // 데이터가 있을 경우에만 정렬 검증
+    if (values.length >= 2) {
+      // 오름차순 정렬 확인: 첫 번째 값 <= 두 번째 값 <= ...
+      for (let i = 0; i < values.length - 1; i++) {
+        expect(values[i]).toBeLessThanOrEqual(values[i + 1]);
+      }
+    }
+  });
+
+  test("메트릭 변경 시 정렬 순서가 올바르게 적용된다", async ({ page }) => {
+    const rankingSection = page
+      .locator("text=캠페인 랭킹 Top3")
+      .locator("..")
+      .locator("..");
+
+    // ROAS -> CPC -> CTR 순서로 변경하며 정렬 확인
+    // ROAS (내림차순)
+    await expect(page.locator("text=ROAS 기준 상위 캠페인")).toBeVisible();
+    const roasValues = await getRankingValues(page);
+    if (roasValues.length >= 2) {
+      expect(roasValues[0]).toBeGreaterThanOrEqual(roasValues[1]);
+    }
+
+    // CPC (오름차순)
+    await rankingSection.getByRole("button", { name: "CPC" }).click();
+    await page.waitForTimeout(300);
+    const cpcValues = await getRankingValues(page);
+    if (cpcValues.length >= 2) {
+      expect(cpcValues[0]).toBeLessThanOrEqual(cpcValues[1]);
+    }
+
+    // CTR (내림차순)
+    await rankingSection.getByRole("button", { name: "CTR" }).click();
+    await page.waitForTimeout(300);
+    const ctrValues = await getRankingValues(page);
+    if (ctrValues.length >= 2) {
+      expect(ctrValues[0]).toBeGreaterThanOrEqual(ctrValues[1]);
+    }
+  });
+
+  test("랭킹에 최대 3개의 캠페인만 표시된다", async ({ page }) => {
+    const rankingSection = page
+      .locator("text=캠페인 랭킹 Top3")
+      .locator("..")
+      .locator("..");
+
+    // 순위 뱃지 (1, 2, 3) 확인
+    const rankBadges = rankingSection.locator(".rounded-full.font-bold");
+    const count = await rankBadges.count();
+
+    // 최대 3개
+    expect(count).toBeLessThanOrEqual(3);
+
+    // 데이터가 있으면 1등은 반드시 존재
+    if (count > 0) {
+      await expect(rankBadges.first()).toContainText("1");
+    }
+  });
+
+  test("각 순위에 캠페인명이 표시된다", async ({ page }) => {
+    const rankingSection = page
+      .locator("text=캠페인 랭킹 Top3")
+      .locator("..")
+      .locator("..");
+
+    // 캠페인 카드 내 캠페인명 확인
+    const campaignNames = rankingSection.locator(".truncate.font-medium");
+    const count = await campaignNames.count();
+
+    // 데이터가 있으면 캠페인명이 표시됨
+    if (count > 0) {
+      const firstName = await campaignNames.first().textContent();
+      expect(firstName).toBeTruthy();
+      expect(firstName?.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  test("각 순위에 메트릭 값과 단위가 표시된다", async ({ page }) => {
+    const rankingSection = page
+      .locator("text=캠페인 랭킹 Top3")
+      .locator("..")
+      .locator("..");
+
+    // ROAS 기본값 - 단위는 %
+    await expect(page.locator("text=ROAS 기준 상위 캠페인")).toBeVisible();
+
+    // 값이 있다면 % 단위 확인
+    const valueWithUnit = rankingSection.locator(".tabular-nums").first();
+    if (await valueWithUnit.isVisible()) {
+      const parent = valueWithUnit.locator("..");
+      await expect(parent.locator("text=%")).toBeVisible();
+    }
+
+    // CPC로 변경 - 단위는 원
+    await rankingSection.getByRole("button", { name: "CPC" }).click();
+    await page.waitForTimeout(300);
+
+    const cpcValueWithUnit = rankingSection.locator(".tabular-nums").first();
+    if (await cpcValueWithUnit.isVisible()) {
+      const parent = cpcValueWithUnit.locator("..");
+      await expect(parent.locator("text=원")).toBeVisible();
+    }
+  });
+});
