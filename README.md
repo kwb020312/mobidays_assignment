@@ -135,6 +135,31 @@ npm run test:e2e:ui   # UI 모드 실행
 1. **Zustand 선택적 구독**: 필요한 상태만 구독하여 해당 컴포넌트만 리렌더링
 2. **React Compiler**: 리렌더링 시 변경되지 않은 값/함수 자동 재사용
 
+### useMemo/useCallback 미사용 근거
+
+본 프로젝트는 **React Compiler 1.0**을 적용했으며, 이에 따라 `useMemo`와 `useCallback`을 의도적으로 사용하지 않았습니다.
+
+> **React 공식 문서 권장사항**: React Compiler는 메모이제이션을 자동으로 처리하므로, 컴파일러 적용 후에는 수동 메모이제이션 훅 사용이 **비권장**됩니다. 성능 문제가 실제로 확인된 경우에 한해 선별적으로 적용하는 것이 권장됩니다.
+>
+> — [React Compiler 공식 문서](https://react.dev/learn/react-compiler)
+
+**적용 확인:**
+
+```javascript
+// vite.config.ts
+export default defineConfig({
+  plugins: [
+    react({
+      babel: {
+        plugins: [["babel-plugin-react-compiler", {}]],
+      },
+    }),
+  ],
+});
+```
+
+React Compiler가 빌드 시점에 컴포넌트를 분석하여 필요한 곳에 자동으로 메모이제이션을 적용하므로, 수동 훅 사용으로 인한 의존성 배열 오류나 과도한 메모이제이션 문제를 방지합니다.
+
 ---
 
 ## 폴더 구조 및 아키텍처

@@ -39,6 +39,14 @@ export default tseslint.config(
     },
   },
 
+  // shadcn/ui 컴포넌트는 variants와 함께 내보내는 것이 표준 패턴
+  {
+    files: ["src/shared/ui/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
+
   // Prettier 규칙 충돌 방지 (반드시 마지막에 위치)
   prettier
 );
