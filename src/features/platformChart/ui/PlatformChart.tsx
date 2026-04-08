@@ -67,7 +67,7 @@ export function PlatformChart() {
   }
 
   return (
-    <Card>
+    <Card data-testid="platform-chart">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>플랫폼별 성과</CardTitle>
