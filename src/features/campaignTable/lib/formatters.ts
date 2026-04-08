@@ -1,7 +1,4 @@
-// 숫자를 천 단위 구분 기호로 포맷
-function formatNumber(value: number): string {
-  return value.toLocaleString("ko-KR");
-}
+import { formatNumber } from "@/shared/lib/formatters";
 
 // 금액 포맷 (원) - 0이면 "-" 표시
 export function formatCurrency(value: number): string {

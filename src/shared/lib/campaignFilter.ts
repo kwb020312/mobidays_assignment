@@ -2,7 +2,7 @@ import { parseISO, isWithinInterval } from "date-fns";
 import type { Campaign } from "@/entities/campaign";
 import type { DailyStat } from "@/entities/dailyStat";
 import type { Platform, CampaignStatus } from "@/shared/types";
-import { normalizeDate } from "./formatters";
+import { normalizeDate } from "@/entities/lib/normalize";
 
 export interface CampaignFilterParams {
   campaigns: Campaign[];
@@ -59,9 +59,7 @@ export function getFilteredCampaignIds({
 /**
  * 필터 조건에 맞는 캠페인 배열을 반환
  */
-export function getFilteredCampaigns(
-  params: CampaignFilterParams
-): Campaign[] {
+export function getFilteredCampaigns(params: CampaignFilterParams): Campaign[] {
   const filteredIds = getFilteredCampaignIds(params);
   return params.campaigns.filter((c) => filteredIds.has(c.id));
 }
@@ -78,7 +76,10 @@ export function filterDailyStatsByDate(
     if (!normalizedDate) return false;
 
     const statDate = parseISO(normalizedDate);
-    return isWithinInterval(statDate, { start: dateRange.from, end: dateRange.to });
+    return isWithinInterval(statDate, {
+      start: dateRange.from,
+      end: dateRange.to,
+    });
   });
 }
 
@@ -97,7 +98,10 @@ export function getFilteredDailyStats({
     if (!normalizedDate) return false;
 
     const statDate = parseISO(normalizedDate);
-    return isWithinInterval(statDate, { start: dateRange.from, end: dateRange.to });
+    return isWithinInterval(statDate, {
+      start: dateRange.from,
+      end: dateRange.to,
+    });
   });
 }
 
@@ -122,10 +126,13 @@ export function aggregateByCampaign(
   for (const stat of dailyStats) {
     const existing = aggregation.get(stat.campaignId);
     const cost = typeof stat.cost === "number" ? stat.cost : 0;
-    const impressions = typeof stat.impressions === "number" ? stat.impressions : 0;
+    const impressions =
+      typeof stat.impressions === "number" ? stat.impressions : 0;
     const clicks = typeof stat.clicks === "number" ? stat.clicks : 0;
-    const conversions = typeof stat.conversions === "number" ? stat.conversions : 0;
-    const conversionsValue = typeof stat.conversionsValue === "number" ? stat.conversionsValue : 0;
+    const conversions =
+      typeof stat.conversions === "number" ? stat.conversions : 0;
+    const conversionsValue =
+      typeof stat.conversionsValue === "number" ? stat.conversionsValue : 0;
 
     if (existing) {
       existing.totalCost += cost;

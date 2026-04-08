@@ -39,7 +39,7 @@ export function SortableHeader({
   return (
     <TableHead
       className={cn(
-        "cursor-pointer select-none hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "cursor-pointer select-none hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         align === "right" && "text-right"
       )}
       style={{ width }}
