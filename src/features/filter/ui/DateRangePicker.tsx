@@ -1,16 +1,22 @@
-
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
 import { cn } from "@/shared/lib";
-import { Button, Calendar, Popover, PopoverContent, PopoverTrigger } from "@/shared/ui";
+import {
+  Button,
+  Calendar,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/ui";
 import type { DateRange } from "../types";
 
 interface DateRangePickerProps {
   value: DateRange;
   onChange: (range: DateRange) => void;
   className?: string;
+  "aria-labelledby"?: string;
 }
 
 const calendarProps = {
@@ -24,6 +30,7 @@ export function DateRangePicker({
   value,
   onChange,
   className,
+  "aria-labelledby": ariaLabelledby,
 }: DateRangePickerProps) {
   const handleSelect = (type: "from" | "to") => (date: Date | undefined) => {
     if (!date) return;
@@ -42,17 +49,23 @@ export function DateRangePicker({
   };
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div
+      className={cn("flex items-center gap-2", className)}
+      role="group"
+      aria-labelledby={ariaLabelledby}
+    >
       <Popover>
         <PopoverTrigger
           render={
             <Button
               variant="outline"
               className="w-[140px] justify-start text-left font-normal"
+              aria-label={`시작일 선택: ${format(value.from, "yyyy년 M월 d일", { locale: ko })}`}
             >
               <CalendarIcon
                 data-icon="inline-start"
                 className="text-muted-foreground"
+                aria-hidden="true"
               />
               {format(value.from, "yyyy.MM.dd", { locale: ko })}
             </Button>
@@ -69,7 +82,9 @@ export function DateRangePicker({
         </PopoverContent>
       </Popover>
 
-      <span className="text-muted-foreground">~</span>
+      <span className="text-muted-foreground" aria-hidden="true">
+        ~
+      </span>
 
       <Popover>
         <PopoverTrigger
@@ -77,10 +92,12 @@ export function DateRangePicker({
             <Button
               variant="outline"
               className="w-[140px] justify-start text-left font-normal"
+              aria-label={`종료일 선택: ${format(value.to, "yyyy년 M월 d일", { locale: ko })}`}
             >
               <CalendarIcon
                 data-icon="inline-start"
                 className="text-muted-foreground"
+                aria-hidden="true"
               />
               {format(value.to, "yyyy.MM.dd", { locale: ko })}
             </Button>

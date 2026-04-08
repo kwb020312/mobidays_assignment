@@ -1,19 +1,32 @@
-
 import * as React from "react";
 import { cn } from "@/shared/lib";
 
-const Table = React.forwardRef<
-  HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
-      {...props}
-    />
-  </div>
-));
+interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
+  /** 스크린 리더를 위한 테이블 설명 (sr-only caption) */
+  srCaption?: string;
+}
+
+const Table = React.forwardRef<HTMLTableElement, TableProps>(
+  ({ className, srCaption, ...props }, ref) => (
+    <div
+      className="relative w-full overflow-auto"
+      role="region"
+      aria-label={srCaption || "데이터 테이블"}
+      tabIndex={0}
+    >
+      {/* 모바일 스크롤 힌트 - 우측 그라데이션 */}
+      <div
+        className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-background to-transparent md:hidden"
+        aria-hidden="true"
+      />
+      <table
+        ref={ref}
+        className={cn("w-full caption-bottom text-sm", className)}
+        {...props}
+      />
+    </div>
+  )
+);
 Table.displayName = "Table";
 
 const TableHeader = React.forwardRef<

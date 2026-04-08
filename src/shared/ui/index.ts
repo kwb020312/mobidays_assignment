@@ -53,3 +53,4 @@ export {
   DialogTrigger,
 } from "./dialog";
 export { Label } from "./label";
+export { Skeleton } from "./skeleton";

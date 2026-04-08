@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { CalendarIcon, Plus } from "lucide-react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -24,14 +25,12 @@ import {
 import { cn } from "@/shared/lib";
 import { ALL_PLATFORMS, PLATFORM_LABELS, type Platform } from "@/shared/types";
 import { useCampaignStore } from "@/entities/campaign";
-import {
-  CALENDAR_START_MONTH,
-  CALENDAR_END_MONTH,
-} from "@/shared/constants";
+import { CALENDAR_START_MONTH, CALENDAR_END_MONTH } from "@/shared/constants";
 import { campaignFormSchema, type CampaignFormData } from "../schema";
 
 function formatNumberWithCommas(value: string | number): string {
-  const num = typeof value === "string" ? value.replace(/[^\d]/g, "") : String(value);
+  const num =
+    typeof value === "string" ? value.replace(/[^\d]/g, "") : String(value);
   if (!num) return "";
   return Number(num).toLocaleString("ko-KR");
 }
@@ -70,19 +69,30 @@ export function CampaignRegistrationModal() {
   const endDate = watch("endDate");
 
   const onSubmit = (data: CampaignFormData) => {
-    const newCampaign = {
-      id: crypto.randomUUID(),
-      name: data.name,
-      platform: data.platform as Platform,
-      status: "active" as const,
-      budget: data.budget,
-      startDate: data.startDate,
-      endDate: data.endDate,
-    };
+    try {
+      const newCampaign = {
+        id: crypto.randomUUID(),
+        name: data.name,
+        platform: data.platform as Platform,
+        status: "active" as const,
+        budget: data.budget,
+        startDate: data.startDate,
+        endDate: data.endDate,
+      };
 
-    addCampaign(newCampaign);
-    reset();
-    setOpen(false);
+      addCampaign(newCampaign);
+      reset();
+      setBudgetDisplay("");
+      setCostDisplay("");
+      setOpen(false);
+      toast.success("캠페인 등록 완료", {
+        description: `"${data.name}" 캠페인이 등록되었습니다.`,
+      });
+    } catch {
+      toast.error("캠페인 등록 실패", {
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    }
   };
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -97,13 +107,17 @@ export function CampaignRegistrationModal() {
   const handleBudgetChange = (e: ChangeEvent<HTMLInputElement>) => {
     const formatted = formatNumberWithCommas(e.target.value);
     setBudgetDisplay(formatted);
-    setValue("budget", parseFormattedNumber(e.target.value), { shouldValidate: true });
+    setValue("budget", parseFormattedNumber(e.target.value), {
+      shouldValidate: true,
+    });
   };
 
   const handleCostChange = (e: ChangeEvent<HTMLInputElement>) => {
     const formatted = formatNumberWithCommas(e.target.value);
     setCostDisplay(formatted);
-    setValue("cost", parseFormattedNumber(e.target.value), { shouldValidate: true });
+    setValue("cost", parseFormattedNumber(e.target.value), {
+      shouldValidate: true,
+    });
   };
 
   return (
@@ -113,179 +127,183 @@ export function CampaignRegistrationModal() {
         캠페인 등록
       </Button>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>캠페인 등록</DialogTitle>
-        </DialogHeader>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>캠페인 등록</DialogTitle>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* 캠페인명 + 광고매체 */}
-          <div className="flex gap-4">
-            <div className="flex-1 space-y-2">
-              <Label htmlFor="name">캠페인명 *</Label>
-              <Input
-                id="name"
-                placeholder="캠페인명 (2~100자)"
-                {...register("name")}
-              />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
-              )}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* 캠페인명 + 광고매체 */}
+            <div className="flex gap-4">
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="name">캠페인명 *</Label>
+                <Input
+                  id="name"
+                  placeholder="캠페인명 (2~100자)"
+                  {...register("name")}
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive">
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
+              <div className="w-32 space-y-2">
+                <Label htmlFor="platform">광고 매체 *</Label>
+                <Select
+                  id="platform"
+                  className="w-full"
+                  options={ALL_PLATFORMS.map((p) => ({
+                    value: p,
+                    label: PLATFORM_LABELS[p],
+                  }))}
+                  placeholder="매체 선택"
+                  {...register("platform")}
+                />
+                {errors.platform && (
+                  <p className="text-sm text-destructive">
+                    {errors.platform.message}
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="w-32 space-y-2">
-              <Label htmlFor="platform">광고 매체 *</Label>
-              <Select
-                id="platform"
-                className="w-full"
-                options={ALL_PLATFORMS.map((p) => ({
-                  value: p,
-                  label: PLATFORM_LABELS[p],
-                }))}
-                placeholder="매체 선택"
-                {...register("platform")}
-              />
-              {errors.platform && (
-                <p className="text-sm text-destructive">
-                  {errors.platform.message}
-                </p>
-              )}
-            </div>
-          </div>
 
-          {/* 예산 + 집행금액 */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="budget">예산 (원) *</Label>
-              <Input
-                id="budget"
-                type="text"
-                inputMode="numeric"
-                placeholder="100 ~ 1,000,000,000"
-                value={budgetDisplay}
-                onChange={handleBudgetChange}
-              />
-              {errors.budget && (
-                <p className="text-sm text-destructive">
-                  {errors.budget.message}
-                </p>
-              )}
+            {/* 예산 + 집행금액 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="budget">예산 (원) *</Label>
+                <Input
+                  id="budget"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="100 ~ 1,000,000,000"
+                  value={budgetDisplay}
+                  onChange={handleBudgetChange}
+                />
+                {errors.budget && (
+                  <p className="text-sm text-destructive">
+                    {errors.budget.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cost">집행 금액 (원) *</Label>
+                <Input
+                  id="cost"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0 ~ 예산 이하"
+                  value={costDisplay}
+                  onChange={handleCostChange}
+                />
+                {errors.cost && (
+                  <p className="text-sm text-destructive">
+                    {errors.cost.message}
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="cost">집행 금액 (원) *</Label>
-              <Input
-                id="cost"
-                type="text"
-                inputMode="numeric"
-                placeholder="0 ~ 예산 이하"
-                value={costDisplay}
-                onChange={handleCostChange}
-              />
-              {errors.cost && (
-                <p className="text-sm text-destructive">{errors.cost.message}</p>
-              )}
-            </div>
-          </div>
 
-          {/* 시작일 + 종료일 */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>시작일 *</Label>
-              <Popover>
-                <PopoverTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !startDate && "text-muted-foreground"
-                      )}
-                    />
-                  }
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {startDate
-                    ? format(new Date(startDate), "yyyy.M.d", { locale: ko })
-                    : "시작일 선택"}
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    captionLayout="dropdown"
-                    startMonth={CALENDAR_START_MONTH}
-                    endMonth={CALENDAR_END_MONTH}
-                    selected={startDate ? new Date(startDate) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setValue("startDate", format(date, "yyyy-MM-dd"), {
-                          shouldValidate: true,
-                        });
-                      }
-                    }}
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors.startDate && (
-                <p className="text-sm text-destructive">
-                  {errors.startDate.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>종료일 *</Label>
-              <Popover>
-                <PopoverTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !endDate && "text-muted-foreground"
-                      )}
-                    />
-                  }
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {endDate
-                    ? format(new Date(endDate), "yyyy.M.d", { locale: ko })
-                    : "종료일 선택"}
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    captionLayout="dropdown"
-                    startMonth={CALENDAR_START_MONTH}
-                    endMonth={CALENDAR_END_MONTH}
-                    selected={endDate ? new Date(endDate) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setValue("endDate", format(date, "yyyy-MM-dd"), {
-                          shouldValidate: true,
-                        });
-                      }
-                    }}
-                    disabled={(date) =>
-                      startDate ? date < new Date(startDate) : false
+            {/* 시작일 + 종료일 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>시작일 *</Label>
+                <Popover>
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !startDate && "text-muted-foreground"
+                        )}
+                      />
                     }
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors.endDate && (
-                <p className="text-sm text-destructive">
-                  {errors.endDate.message}
-                </p>
-              )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate
+                      ? format(new Date(startDate), "yyyy.M.d", { locale: ko })
+                      : "시작일 선택"}
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      captionLayout="dropdown"
+                      startMonth={CALENDAR_START_MONTH}
+                      endMonth={CALENDAR_END_MONTH}
+                      selected={startDate ? new Date(startDate) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setValue("startDate", format(date, "yyyy-MM-dd"), {
+                            shouldValidate: true,
+                          });
+                        }
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {errors.startDate && (
+                  <p className="text-sm text-destructive">
+                    {errors.startDate.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>종료일 *</Label>
+                <Popover>
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !endDate && "text-muted-foreground"
+                        )}
+                      />
+                    }
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate
+                      ? format(new Date(endDate), "yyyy.M.d", { locale: ko })
+                      : "종료일 선택"}
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      captionLayout="dropdown"
+                      startMonth={CALENDAR_START_MONTH}
+                      endMonth={CALENDAR_END_MONTH}
+                      selected={endDate ? new Date(endDate) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setValue("endDate", format(date, "yyyy-MM-dd"), {
+                            shouldValidate: true,
+                          });
+                        }
+                      }}
+                      disabled={(date) =>
+                        startDate ? date < new Date(startDate) : false
+                      }
+                    />
+                  </PopoverContent>
+                </Popover>
+                {errors.endDate && (
+                  <p className="text-sm text-destructive">
+                    {errors.endDate.message}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
 
-          <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "등록 중..." : "등록"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
+            <DialogFooter>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "등록 중..." : "등록"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
       </Dialog>
     </>
   );
