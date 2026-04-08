@@ -11,9 +11,10 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  Skeleton,
 } from "@/shared/ui";
 import { cn, formatNumber } from "@/shared/lib";
-import { useFilterStore } from "@/features/filter";
+import { useFilterStore } from "@/shared/stores";
 import type { Platform } from "@/shared/types";
 import { usePlatformStats } from "../hooks/usePlatformStats";
 import { PlatformMetricToggle } from "./PlatformMetricToggle";
@@ -66,7 +67,7 @@ export function PlatformChart() {
   }
 
   return (
-    <Card>
+    <Card data-testid="platform-chart">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>플랫폼별 성과</CardTitle>
@@ -79,8 +80,23 @@ export function PlatformChart() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex h-[300px] items-center justify-center text-muted-foreground">
-            데이터를 불러오는 중...
+          <div className="flex h-[280px] items-center gap-4">
+            {/* 도넛 차트 Skeleton */}
+            <div className="flex flex-1 items-center justify-center">
+              <Skeleton className="h-[220px] w-[220px] rounded-full" />
+            </div>
+            {/* 우측 범례 Skeleton */}
+            <div className="flex flex-1 flex-col gap-3">
+              <div className="border-b pb-2">
+                <Skeleton className="mb-1 h-3 w-16" />
+                <Skeleton className="h-6 w-28" />
+              </div>
+              <div className="flex flex-col gap-2">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-8 w-full" />
+                ))}
+              </div>
+            </div>
           </div>
         ) : isEmpty ? (
           <div className="flex h-[300px] items-center justify-center text-muted-foreground">

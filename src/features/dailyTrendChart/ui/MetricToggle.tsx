@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/shared/ui";
 import { METRIC_OPTIONS, type DailyMetric } from "../types";
 

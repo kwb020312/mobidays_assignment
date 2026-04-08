@@ -1,5 +1,3 @@
-"use client";
-
 import {
   startOfDay,
   endOfDay,
@@ -58,7 +56,9 @@ const MONTH_PRESETS: DatePreset[] = Array.from({ length: 12 }, (_, i) => ({
   label: `${i + 1}월`,
   getRange: () => {
     const year = new Date().getFullYear();
-    const monthStart = startOfMonth(setMonth(startOfYear(new Date(year, 0)), i));
+    const monthStart = startOfMonth(
+      setMonth(startOfYear(new Date(year, 0)), i)
+    );
     return { from: monthStart, to: endOfMonth(monthStart) };
   },
 }));

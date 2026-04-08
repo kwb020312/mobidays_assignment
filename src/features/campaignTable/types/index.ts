@@ -7,12 +7,12 @@ export interface CampaignTableRow {
   name: string;
   status: CampaignStatus;
   platform: Campaign["platform"];
-  startDate: string;
+  startDate: string | null;
   endDate: string | null;
-  totalCost: number;      // 총 집행금액
-  ctr: number | null;     // CTR (%)
-  cpc: number | null;     // CPC (원)
-  roas: number | null;    // ROAS (%)
+  totalCost: number; // 총 집행금액
+  ctr: number | null; // CTR (%)
+  cpc: number | null; // CPC (원)
+  roas: number | null; // ROAS (%)
 }
 
 // 정렬 가능한 컬럼

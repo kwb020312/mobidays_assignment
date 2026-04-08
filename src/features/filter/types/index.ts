@@ -1,12 +1,2 @@
-import type { Platform, CampaignStatus } from "@/shared/types";
-
-export interface DateRange {
-  from: Date;
-  to: Date;
-}
-
-export interface FilterState {
-  dateRange: DateRange;
-  status: Set<CampaignStatus>;
-  platform: Set<Platform>;
-}
+// Re-export from shared/types for backward compatibility
+export type { DateRange, FilterState } from "@/shared/types";

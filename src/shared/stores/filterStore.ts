@@ -1,8 +1,12 @@
 import { create } from "zustand";
 import { startOfMonth, endOfMonth } from "date-fns";
-import type { Platform, CampaignStatus } from "@/shared/types";
+import type {
+  Platform,
+  CampaignStatus,
+  FilterState,
+  DateRange,
+} from "@/shared/types";
 import { ALL_STATUSES, ALL_PLATFORMS } from "@/shared/types";
-import type { FilterState, DateRange } from "./types";
 
 function getInitialDateRange(): DateRange {
   const now = new Date();
@@ -67,7 +71,9 @@ export const useFilterStore = create<FilterStore>((set) => ({
 const ALL_STATUSES_SET = new Set(ALL_STATUSES);
 const ALL_PLATFORMS_SET = new Set(ALL_PLATFORMS);
 
-export const selectEffectiveStatus = (state: FilterStore): Set<CampaignStatus> =>
+export const selectEffectiveStatus = (
+  state: FilterStore
+): Set<CampaignStatus> =>
   state.status.size === 0 ? ALL_STATUSES_SET : state.status;
 
 export const selectEffectivePlatform = (state: FilterStore): Set<Platform> =>

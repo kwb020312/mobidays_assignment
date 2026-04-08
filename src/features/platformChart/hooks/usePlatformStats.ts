@@ -4,10 +4,10 @@ import {
   useFilterStore,
   selectEffectiveStatus,
   selectEffectivePlatform,
-} from "@/features/filter";
-import { useDataStore } from "@/shared/stores";
+} from "@/shared/stores";
+import { useCampaignStore } from "@/entities/campaign";
+import { useDailyStatStore } from "@/entities/dailyStat";
 import {
-  normalizeNumber,
   getFilteredCampaigns,
   getFilteredDailyStats,
   getFilteredCampaignIds,
@@ -24,10 +24,17 @@ interface PlatformAggregation {
 }
 
 export function usePlatformStats(metric: PlatformMetric) {
-  const campaigns = useDataStore((state) => state.campaigns);
-  const dailyStats = useDataStore((state) => state.dailyStats);
-  const isLoading = useDataStore((state) => state.isLoading);
-  const error = useDataStore((state) => state.error);
+  const campaigns = useCampaignStore((state) => state.campaigns);
+  const dailyStats = useDailyStatStore((state) => state.dailyStats);
+
+  // 훅은 항상 동일한 순서로 호출되어야 함 (React Hooks 규칙)
+  const campaignLoading = useCampaignStore((state) => state.isLoading);
+  const dailyStatLoading = useDailyStatStore((state) => state.isLoading);
+  const campaignError = useCampaignStore((state) => state.error);
+  const dailyStatError = useDailyStatStore((state) => state.error);
+
+  const isLoading = campaignLoading || dailyStatLoading;
+  const error = campaignError || dailyStatError;
 
   const dateRange = useFilterStore((state) => state.dateRange);
   const effectiveStatus = useFilterStore(selectEffectiveStatus);
@@ -61,7 +68,7 @@ export function usePlatformStats(metric: PlatformMetric) {
     dateRange,
   });
 
-  // 플랫폼별 집계
+  // 플랫폼별 집계 (API 레이어에서 정규화 완료됨)
   const platformAggregation = new Map<Platform, PlatformAggregation>();
 
   for (const stat of filteredStats) {
@@ -70,16 +77,16 @@ export function usePlatformStats(metric: PlatformMetric) {
 
     const existing = platformAggregation.get(platform);
     if (existing) {
-      existing.cost += normalizeNumber(stat.cost);
-      existing.impressions += normalizeNumber(stat.impressions);
-      existing.clicks += normalizeNumber(stat.clicks);
-      existing.conversions += normalizeNumber(stat.conversions);
+      existing.cost += stat.cost;
+      existing.impressions += stat.impressions;
+      existing.clicks += stat.clicks;
+      existing.conversions += stat.conversions;
     } else {
       platformAggregation.set(platform, {
-        cost: normalizeNumber(stat.cost),
-        impressions: normalizeNumber(stat.impressions),
-        clicks: normalizeNumber(stat.clicks),
-        conversions: normalizeNumber(stat.conversions),
+        cost: stat.cost,
+        impressions: stat.impressions,
+        clicks: stat.clicks,
+        conversions: stat.conversions,
       });
     }
   }

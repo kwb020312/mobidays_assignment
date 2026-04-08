@@ -4,14 +4,11 @@ import {
   useFilterStore,
   selectEffectiveStatus,
   selectEffectivePlatform,
-} from "@/features/filter";
-import { useDataStore } from "@/shared/stores";
-import {
-  normalizeDate,
-  getFilteredCampaigns,
-  filterDailyStatsByDate,
-} from "@/shared/lib";
-import type { DailyStat } from "@/entities/dailyStat";
+} from "@/shared/stores";
+import { useCampaignStore } from "@/entities/campaign";
+import { useDailyStatStore } from "@/entities/dailyStat";
+import { getFilteredCampaigns, filterDailyStatsByDate } from "@/shared/lib";
+import type { DailyStat } from "@/shared/types";
 import type { CampaignTableRow } from "../types";
 import {
   aggregateMetrics,
@@ -21,10 +18,17 @@ import {
 } from "../lib/calculations";
 
 export function useFilteredCampaigns() {
-  const campaigns = useDataStore((state) => state.campaigns);
-  const dailyStats = useDataStore((state) => state.dailyStats);
-  const isLoading = useDataStore((state) => state.isLoading);
-  const error = useDataStore((state) => state.error);
+  const campaigns = useCampaignStore((state) => state.campaigns);
+  const dailyStats = useDailyStatStore((state) => state.dailyStats);
+
+  // 훅은 항상 동일한 순서로 호출되어야 함 (React Hooks 규칙)
+  const campaignLoading = useCampaignStore((state) => state.isLoading);
+  const dailyStatLoading = useDailyStatStore((state) => state.isLoading);
+  const campaignError = useCampaignStore((state) => state.error);
+  const dailyStatError = useDailyStatStore((state) => state.error);
+
+  const isLoading = campaignLoading || dailyStatLoading;
+  const error = campaignError || dailyStatError;
 
   const dateRange = useFilterStore((state) => state.dateRange);
   const effectiveStatus = useFilterStore(selectEffectiveStatus);
@@ -62,8 +66,8 @@ export function useFilteredCampaigns() {
         name: campaign.name,
         status: campaign.status,
         platform: campaign.platform,
-        startDate: normalizeDate(campaign.startDate) || campaign.startDate,
-        endDate: normalizeDate(campaign.endDate),
+        startDate: campaign.startDate,
+        endDate: campaign.endDate,
         totalCost: metrics.totalCost,
         ctr: calculateCTR(metrics.totalClicks, metrics.totalImpressions),
         cpc: calculateCPC(metrics.totalCost, metrics.totalClicks),

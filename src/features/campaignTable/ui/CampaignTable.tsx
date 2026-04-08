@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowUp } from "lucide-react";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -18,6 +17,7 @@ import {
   Checkbox,
   Select,
   Button,
+  Skeleton,
 } from "@/shared/ui";
 import {
   STATUS_LABELS,
@@ -25,178 +25,55 @@ import {
   ALL_STATUSES,
   type CampaignStatus,
 } from "@/shared/types";
-import { useDataStore } from "@/shared/stores";
-import {
-  formatCurrency,
-  formatPercent,
-  formatCPC,
-  formatDateRange,
-  cn,
-} from "@/shared/lib";
+import { useCampaignStore } from "@/entities/campaign";
+import { formatDateRange, cn } from "@/shared/lib";
+import { formatCurrency, formatPercent, formatCPC } from "../lib/formatters";
 import { useFilteredCampaigns } from "../hooks/useFilteredCampaigns";
+import { useTableState } from "../hooks/useTableState";
 import { STATUS_VARIANT } from "../constants";
-import type { SortableColumn, SortState } from "../types";
-import { PAGE_SIZE } from "../types";
 import { CampaignRegistrationModal } from "./CampaignRegistrationModal";
+import { SortableHeader } from "./SortableHeader";
 
 export function CampaignTable() {
-  const { data, isEmpty } = useFilteredCampaigns();
-  const updateCampaign = useDataStore((state) => state.updateCampaign);
+  const { data, isEmpty, isLoading } = useFilteredCampaigns();
+  const updateCampaign = useCampaignStore((state) => state.updateCampaign);
 
-  // 테이블 상태
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortState, setSortState] = useState<SortState>({
-    column: null,
-    direction: "desc",
-  });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const {
+    paginatedData,
+    searchedCount,
+    totalCount,
+    totalPages,
+    currentPageIds,
+    allCurrentPageSelected,
+    searchQuery,
+    sortState,
+    currentPage,
+    selectedIds,
+    handleSort,
+    handleSearch,
+    handlePageChange,
+    clearSelection,
+    toggleSelection,
+    selectMany,
+  } = useTableState({ data });
 
-  // 검색 필터링
-  const searchedData = searchQuery
-    ? data.filter((row) =>
-        row.name?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : data;
-
-  // 정렬
-  const sortedData = sortState.column
-    ? [...searchedData].sort((a, b) => {
-        const aVal = a[sortState.column!];
-        const bVal = b[sortState.column!];
-
-        // null 값 처리
-        if (aVal === null && bVal === null) return 0;
-        if (aVal === null) return 1;
-        if (bVal === null) return -1;
-
-        // 날짜 비교
-        if (sortState.column === "startDate") {
-          const comparison = (aVal as string).localeCompare(bVal as string);
-          return sortState.direction === "asc" ? comparison : -comparison;
-        }
-
-        // 숫자 비교
-        const comparison = (aVal as number) - (bVal as number);
-        return sortState.direction === "asc" ? comparison : -comparison;
-      })
-    : searchedData;
-
-  // 페이지네이션
-  const totalPages = Math.ceil(sortedData.length / PAGE_SIZE);
-  const paginatedData = sortedData.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
-  );
-
-  // 현재 페이지의 선택 상태
-  const currentPageIds = new Set(paginatedData.map((row) => row.id));
-  const allCurrentPageSelected =
-    paginatedData.length > 0 &&
-    paginatedData.every((row) => selectedIds.has(row.id));
-
-  // 정렬 토글
-  const handleSort = (column: SortableColumn) => {
-    setSortState((prev) => {
-      if (prev.column === column) {
-        return {
-          column,
-          direction: prev.direction === "asc" ? "desc" : "asc",
-        };
-      }
-      return { column, direction: "desc" };
-    });
-  };
-
-  // 전체 선택 토글
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds((prev) => {
-        const next = new Set(prev);
-        for (const id of currentPageIds) {
-          next.add(id);
-        }
-        return next;
-      });
-    } else {
-      setSelectedIds((prev) => {
-        const next = new Set(prev);
-        for (const id of currentPageIds) {
-          next.delete(id);
-        }
-        return next;
-      });
-    }
-  };
-
-  // 개별 선택 토글
-  const handleSelectRow = (id: string, checked: boolean) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (checked) {
-        next.add(id);
-      } else {
-        next.delete(id);
-      }
-      return next;
-    });
-  };
-
-  // 일괄 상태 변경
   const handleBulkStatusChange = (status: CampaignStatus) => {
+    const count = selectedIds.size;
+    if (count === 0) {
+      toast.warning("선택된 캠페인 없음", {
+        description: "상태를 변경할 캠페인을 선택해주세요.",
+      });
+      return;
+    }
+
     for (const id of selectedIds) {
       updateCampaign(id, { status });
     }
-    setSelectedIds(new Set());
+    clearSelection();
+    toast.success("상태 변경 완료", {
+      description: `${count}개 캠페인이 "${STATUS_LABELS[status]}" 상태로 변경되었습니다.`,
+    });
   };
-
-  // 페이지 변경
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  // 검색 시 페이지 초기화
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  };
-
-  // 정렬 가능한 헤더 렌더링
-  const renderSortableHeader = (
-    column: SortableColumn,
-    label: string,
-    width: string,
-    align: "left" | "right" = "left"
-  ) => (
-    <TableHead
-      className={cn(
-        "cursor-pointer select-none hover:bg-muted/50",
-        align === "right" && "text-right"
-      )}
-      style={{ width }}
-      onClick={() => handleSort(column)}
-    >
-      <span
-        className={cn(
-          "inline-flex items-center gap-1",
-          align === "right" && "justify-end"
-        )}
-      >
-        {label}
-        <span className="inline-flex size-4 items-center justify-center">
-          <ArrowUp
-            className={cn(
-              "size-3.5 shrink-0 transition-transform duration-200",
-              sortState.column !== column && "text-muted-foreground/50",
-              sortState.column === column &&
-                sortState.direction === "desc" &&
-                "rotate-180"
-            )}
-          />
-        </span>
-      </span>
-    </TableHead>
-  );
 
   return (
     <Card>
@@ -212,14 +89,14 @@ export function CampaignTable() {
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               className="w-48"
+              aria-label="캠페인명 검색"
             />
             <span className="text-sm text-muted-foreground whitespace-nowrap">
-              {searchedData.length} / {data.length}건
+              {searchedCount} / {totalCount}건
             </span>
           </div>
         </div>
 
-        {/* 일괄 상태 변경 */}
         <div className="flex items-center gap-2 pt-2">
           <span className="text-sm text-muted-foreground">
             {selectedIds.size}개 선택됨
@@ -237,45 +114,146 @@ export function CampaignTable() {
             }}
             value=""
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSelectedIds(new Set())}
-          >
+          <Button variant="ghost" size="sm" onClick={clearSelection}>
             선택 해제
           </Button>
         </div>
       </CardHeader>
+
       <CardContent>
         <div className="flex min-h-[600px] flex-col">
-          {isEmpty ? (
-            <div className="flex flex-1 items-center justify-center text-muted-foreground">
-              선택한 조건에 해당하는 캠페인이 없습니다.
-            </div>
-          ) : (
+          {isLoading ? (
             <div className="flex flex-1 flex-col">
               <Table className="table-fixed">
                 <TableHeader>
                   <TableRow>
                     <TableHead style={{ width: "4%" }}>
+                      <Skeleton className="h-4 w-4" />
+                    </TableHead>
+                    <TableHead style={{ width: "20%" }}>
+                      <Skeleton className="h-4 w-16" />
+                    </TableHead>
+                    <TableHead style={{ width: "8%" }}>
+                      <Skeleton className="h-4 w-10" />
+                    </TableHead>
+                    <TableHead style={{ width: "8%" }}>
+                      <Skeleton className="h-4 w-10" />
+                    </TableHead>
+                    <TableHead style={{ width: "15%" }}>
+                      <Skeleton className="h-4 w-14" />
+                    </TableHead>
+                    <TableHead style={{ width: "15%" }}>
+                      <Skeleton className="h-4 w-20" />
+                    </TableHead>
+                    <TableHead style={{ width: "10%" }}>
+                      <Skeleton className="h-4 w-10" />
+                    </TableHead>
+                    <TableHead style={{ width: "10%" }}>
+                      <Skeleton className="h-4 w-10" />
+                    </TableHead>
+                    <TableHead style={{ width: "10%" }}>
+                      <Skeleton className="h-4 w-10" />
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-4" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-14 rounded-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-12" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="ml-auto h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="ml-auto h-4 w-12" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="ml-auto h-4 w-14" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="ml-auto h-4 w-12" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : isEmpty ? (
+            <div className="flex flex-1 items-center justify-center text-muted-foreground">
+              선택한 조건에 해당하는 캠페인이 없습니다.
+            </div>
+          ) : (
+            <div className="flex flex-1 flex-col">
+              <Table
+                className="table-fixed"
+                srCaption="캠페인 목록 테이블 - 좌우로 스크롤하여 더 많은 정보를 확인할 수 있습니다"
+              >
+                <TableHeader>
+                  <TableRow>
+                    <TableHead style={{ width: "4%" }}>
                       <Checkbox
                         checked={allCurrentPageSelected}
-                        onCheckedChange={handleSelectAll}
+                        onCheckedChange={(checked) =>
+                          selectMany(currentPageIds, checked === true)
+                        }
+                        aria-label="현재 페이지 전체 선택"
                       />
                     </TableHead>
                     <TableHead style={{ width: "20%" }}>캠페인명</TableHead>
                     <TableHead style={{ width: "8%" }}>상태</TableHead>
                     <TableHead style={{ width: "8%" }}>매체</TableHead>
-                    {renderSortableHeader("startDate", "집행기간", "15%")}
-                    {renderSortableHeader(
-                      "totalCost",
-                      "총 집행금액",
-                      "15%",
-                      "right"
-                    )}
-                    {renderSortableHeader("ctr", "CTR", "10%", "right")}
-                    {renderSortableHeader("cpc", "CPC", "10%", "right")}
-                    {renderSortableHeader("roas", "ROAS", "10%", "right")}
+                    <SortableHeader
+                      column="startDate"
+                      label="집행기간"
+                      width="15%"
+                      sortState={sortState}
+                      onSort={handleSort}
+                    />
+                    <SortableHeader
+                      column="totalCost"
+                      label="총 집행금액"
+                      width="15%"
+                      align="right"
+                      sortState={sortState}
+                      onSort={handleSort}
+                    />
+                    <SortableHeader
+                      column="ctr"
+                      label="CTR"
+                      width="10%"
+                      align="right"
+                      sortState={sortState}
+                      onSort={handleSort}
+                    />
+                    <SortableHeader
+                      column="cpc"
+                      label="CPC"
+                      width="10%"
+                      align="right"
+                      sortState={sortState}
+                      onSort={handleSort}
+                    />
+                    <SortableHeader
+                      column="roas"
+                      label="ROAS"
+                      width="10%"
+                      align="right"
+                      sortState={sortState}
+                      onSort={handleSort}
+                    />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -290,8 +268,9 @@ export function CampaignTable() {
                         <Checkbox
                           checked={selectedIds.has(row.id)}
                           onCheckedChange={(checked) =>
-                            handleSelectRow(row.id, checked === true)
+                            toggleSelection(row.id, checked === true)
                           }
+                          aria-label={`${row.name || "캠페인"} 선택`}
                         />
                       </TableCell>
                       <TableCell className="font-medium">
@@ -328,7 +307,6 @@ export function CampaignTable() {
                 </TableBody>
               </Table>
 
-              {/* 페이지네이션 - 하단 고정 */}
               <div
                 className={cn(
                   "mt-auto flex items-center justify-center gap-2 pt-4",
@@ -340,10 +318,14 @@ export function CampaignTable() {
                   size="sm"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
+                  aria-label="이전 페이지로 이동"
                 >
                   이전
                 </Button>
-                <span className="text-sm text-muted-foreground">
+                <span
+                  className="text-sm text-muted-foreground"
+                  aria-live="polite"
+                >
                   {currentPage} / {totalPages}
                 </span>
                 <Button
@@ -351,6 +333,7 @@ export function CampaignTable() {
                   size="sm"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
+                  aria-label="다음 페이지로 이동"
                 >
                   다음
                 </Button>

@@ -1,10 +1,44 @@
 # AI 도구 활용 내역
 
-## 사용 도구
+## 요약
+
+### 사용 도구
 
 | 도구                          | 용도                                       |
 | ----------------------------- | ------------------------------------------ |
 | Claude Code (claude-opus-4-5) | 코드 생성, 아키텍처 설계, 디버깅, 리팩토링 |
+
+### 활용 통계
+
+| 항목                      | 수치                                      |
+| ------------------------- | ----------------------------------------- |
+| 총 AI 협업 기록           | 24건                                      |
+| AI 결과물 수정/개선       | 21건 (87.5%)                              |
+| 주요 수정 유형            | 아키텍처 재설계, 성능 최적화, 코드 간결화 |
+| 평가 포인트 기반 프롬프트 | 18건 (REQUIREMENTS.md 섹션 명시적 참조)   |
+
+### 비판적 검증 주요 사례
+
+| 카테고리         | AI 제안                       | 실제 채택 (수정 이유)                                      |
+| ---------------- | ----------------------------- | ---------------------------------------------------------- |
+| **상태 관리**    | Context API + useMemo         | Zustand (선택적 구독으로 리렌더링 최적화)                  |
+| **데이터 구조**  | 배열 기반 필터 상태           | Set 자료구조 (O(1) 조회, 중복 방지)                        |
+| **메모이제이션** | 수동 useMemo/useCallback 유지 | React Compiler 도입 후 전면 제거                           |
+| **데이터 검증**  | 잘못된 status에 기본값 대체   | 필터링으로 변경 (데이터 무결성 우선)                       |
+| **레이어 배치**  | shared/에 모든 유틸리티 배치  | FSD 원칙에 따라 entities/features 레이어로 분산            |
+| **차트 설계**    | 단일 Y축                      | 듀얼 Y축 (노출수/클릭수 스케일 차이로 인한 정보 손실 방지) |
+| **기술 스택**    | Next.js 유지                  | Vite로 전환 (CSR 전용 대시보드에 SSR 불필요)               |
+
+### 협업 방법론: 하네스 프로그래밍
+
+본 프로젝트는 **REQUIREMENTS.md**를 AI에게 제공하고, 평가 기준을 명시적으로 참조하는 프롬프트로 방향을 제어하는 **하네스 프로그래밍** 방식을 적용했습니다. 자세한 내용은 `CLAUDE.md`를 참고하세요.
+
+### 반복 작업 자동화
+
+AI 협업의 효율성을 위해 **커스텀 스킬**을 작성하여 반복 작업을 자동화했습니다:
+
+- `/commit`: git diff 분석 → Conventional Commits 형식 커밋 메시지 생성
+- `/ai-log`: 현재 작업 내용을 AI_USAGE.md에 템플릿 기반 자동 기록
 
 ---
 
@@ -34,7 +68,8 @@ TypeScript 기반 최신 Next.js 환경 구축해줘. 스타일링은 Tailwind C
 
 **수정 사항:**
 
-- (없음 - 기본 설정 그대로 사용)
+- `create-next-app` 기본 설정이 요구사항(TypeScript, Tailwind CSS, App Router)과 일치하여 추가 수정 불필요
+- 단, 이후 CSR 전용 대시보드임을 파악한 후 Vite로 전환 결정 (2026-04-07 기록 참조)
 
 ---
 
@@ -208,7 +243,9 @@ Feature-based 구조로 리팩터링:
 
 **수정 사항:**
 
-- (없음 - 사용자 제안 구조대로 구현)
+- AI가 기술 기반 폴더 구조를 제안했으나, 사용자가 Feature-Sliced Design 패턴을 직접 설계하여 지시
+- AI의 역할: 설계된 구조에 따른 파일 이동 및 import 경로 업데이트 수행
+- 아키텍처 설계는 사용자 주도, 구현은 AI 협업으로 역할 분담
 
 ---
 
@@ -339,7 +376,9 @@ REQUIREMENTS.md 요구사항 기준으로 판단
 
 **수정 사항:**
 
-- (없음 - 기존 구조가 요구사항에 적합하다고 판단하여 유지)
+- AI가 React Query 도입과 SSR 전환을 제안했으나, REQUIREMENTS.md 분석 결과 거부
+- **거부 근거**: 단일 초기 fetch, 서버 동기화 없음, 실시간 필터 동기화 → CSR이 적합
+- 불필요한 기술 도입을 막고 현재 구조 유지를 선택한 비판적 판단 사례
 
 ---
 
@@ -594,100 +633,416 @@ REQUIREMENTS.md 3.4 캠페인 등록 모달 구현:
 
 ---
 
-### 2026-04-07: 플랫폼별 성과 차트 구현 (4.1 선택 과제)
+### 2026-04-07: 빌드 도구 전환 (Next.js → Vite)
 
 **프롬프트:**
 
 ```
-REQUIREMENTS.md 4.1 플랫폼별 성과 차트(Donut) 구현:
-- 메트릭 토글: 비용 / 노출수 / 클릭수 / 전환수 (기본값: 비용)
-- 차트: 플랫폼별(Google / Meta / Naver) 비중 표시
-- 메트릭 수치와 비중(%) 동시 표기
-- 차트 클릭 시 글로벌 필터와 양방향 연동
+REQUIREMENTS.md 기반으로 현재 기술 스택의 적합성을 분석해줘. 서버사이드 관련 작업이 불필요하기에 Next.js를 선택할 이유가 없어
+- 현재 구현: CSR 기반 데이터 패칭, 단일 페이지 대시보드
+- 검토 필요: SSR/SSG 활용 가능성, 빌드 도구 최적화
+분석 결과에 따라 기술 스택 조정이 필요하면 React(Vite)기반의 SPA로 마이그레이션 진행
 ```
 
 **AI 작업 내용:**
 
-- `features/platformChart` 모듈 생성 (Feature-based 구조)
-  - `types/index.ts`: PlatformMetric, PlatformStat 타입 정의
-  - `constants/index.ts`: 메트릭 옵션, 플랫폼 색상, 차트 설정
-  - `hooks/usePlatformStats.ts`: 플랫폼별 데이터 집계 훅
-  - `ui/PlatformMetricToggle.tsx`: 메트릭 선택 토글
-  - `ui/PlatformChart.tsx`: Recharts PieChart 기반 Donut 차트
-- 공통 캠페인 필터링 유틸 함수 분리 (`shared/lib/campaignFilter.ts`)
-  - `getFilteredCampaignIds()`: 필터 조건에 맞는 캠페인 ID Set 반환
-  - `getFilteredCampaigns()`: 필터 조건에 맞는 캠페인 배열 반환
-  - `filterDailyStatsByDate()`: 날짜 범위 필터링
-  - `getFilteredDailyStats()`: 캠페인 ID + 날짜 범위 필터링
-- 기존 `useFilteredDailyStats`, `useFilteredCampaigns` 훅 리팩토링 (공통 유틸 사용)
-- 대시보드 레이아웃 변경 (일별 추이 차트 | 플랫폼 차트 2열 배치)
+- REQUIREMENTS.md 기반 기술 선택 적합성 분석
+- Next.js → Vite + React 전환 작업 수행
+  - `package.json`: next 제거, vite + @vitejs/plugin-react + @tailwindcss/vite 추가
+  - `vite.config.ts`: 새로 생성 (path alias, Tailwind 플러그인 설정)
+  - `index.html`: 새로 생성 (SPA 진입점)
+  - `src/main.tsx`: 새로 생성 (React DOM 렌더링)
+  - `src/App.tsx`: 기존 page.tsx + layout.tsx 통합
+  - `src/styles/globals.css`: app/globals.css에서 이동
+  - `tsconfig.json`: Vite용으로 수정
+  - `components.json`: rsc: false, 경로 수정
+- Next.js 관련 파일 제거 (next.config.ts, next-env.d.ts, postcss.config.mjs, src/app/)
+- 모든 파일에서 `"use client"` 지시문 제거 (22개 파일)
+- README.md에 "기술 선택의 재고" 섹션 추가
 
 **의사결정:**
 
-- Recharts PieChart + innerRadius로 Donut 차트 구현 (기존 차트 라이브러리 일관성)
-- 양방향 필터 연동은 Zustand `togglePlatform` 재활용 (새 로직 불필요)
-- 캠페인 필터링 로직이 3개 훅에서 중복되어 공통 유틸로 분리 (DRY 원칙)
-- `isPlatformSelected` 헬퍼 함수로 opacity 삼항연산자 가독성 개선
+- **CSR이 적합한 이유 분석**:
+  - json-server 기반 API → 빌드 타임 데이터 없음 (SSG 불가)
+  - 실시간 필터/차트 동기화 → 클라이언트 상태 기반 (SSR 이점 없음)
+  - 캠페인 등록 후 즉시 반영 → 클라이언트 상태 관리 필수
+  - 단일 페이지 대시보드 → 복잡한 라우팅 불필요
+  - 내부 도구 → SEO 불필요
+- **전환 판단**: 요구사항에 맞지 않는 기술을 고집하기보다, 분석 후 적합한 도구로 전환하는 것이 올바른 엔지니어링 판단
+- **Vite 선택 이유**: 빠른 HMR, 간단한 설정, 필요한 기능만 포함
 
 **수정 사항:**
 
-- AI가 제안한 `useMemo` 제거 (React Compiler 1.0 자동 메모이제이션)
-- 상수를 `types.ts`에서 `constants/index.ts`로 분리 (사용자 요청)
-- 파일명 `campaign-filter.ts`를 `campaignFilter.ts`로 camelCase 변경 (사용자 요청)
-- `chartConfig`를 컴포넌트 내부에서 상수로 분리 (사용자 요청)
-- opacity 삼항연산자를 `isSelected` 변수로 분리하여 유지보수성 개선 (사용자 요청)
-- 툴팁에 플랫폼별 색상 인디케이터 및 퍼센테이지 추가 (사용자 요청)
-- `types.ts`를 `types/index.ts` 폴더 구조로 변경 (다른 폴더들과 일관성 유지, 사용자 요청)
+- README.md의 Zustand 선택 근거를 Redux 대신 Context API와 비교하도록 수정 (사용자 피드백)
+  - Context를 잘게 쪼개면 Provider 중첩으로 유지보수성 저하
+  - 통합 Context는 한 상태 변경 시 모든 구독 컴포넌트 리렌더링
+  - Zustand의 선택적 구독으로 이 문제 해결
 
 ---
 
-### 2026-04-07: 캠페인 랭킹 Top3 차트 구현 (4.2 선택 과제)
+### 2026-04-08: 데이터 전처리 아키텍처 개선 (API 레이어 정규화)
 
 **프롬프트:**
 
 ```
-REQUIREMENTS.md 4.2 캠페인 랭킹 Top3 (Bar) 구현:
-- 메트릭 토글: ROAS / CTR / CPC 기준 전환 가능 (기본값: ROAS)
-- 선택한 메트릭 기준 상위 3개 캠페인 노출
-- 정렬 로직: ROAS/CTR은 높을수록 상위, CPC는 낮을수록 상위
-
-기존 아키텍처 일관성 유지:
-- Feature-based 구조 (features/campaignRanking)
-- 공통 필터링 유틸 재사용 (shared/lib/campaignFilter.ts)
-- 파생 지표 계산 로직 공유화 고려 (DRY 원칙)
-
-UI/UX 요구사항:
-- 플랫폼 차트와 동일 행에 2열 배치
-- 현대적이고 전문적인 디자인 (카드 리스트 형태, 순위별 시각적 구분)
+REQUIREMENTS.md 2.3 "파생 지표 계산 및 전처리" 평가 항목 기준으로 현재 데이터 전처리 구조 분석 및 개선:
+- Division by Zero, Null Safety, 데이터 정규화 처리 현황 검토
+- 현재 방어적 코드가 비즈니스 로직 곳곳에 분산되어 있어 중복 및 유지보수 문제 식별
+- Zod 스키마 기반 API 레이어 정규화로 단일 책임 원칙(SRP) 적용 방안 설계
 ```
 
 **AI 작업 내용:**
 
-- `features/campaignRanking` 모듈 생성 (Feature-based 구조)
-  - `types/index.ts`: RankingMetric, RankingMetricOption, CampaignRankingStat 타입 정의
-  - `constants/index.ts`: 메트릭 옵션(ROAS/CTR/CPC), 순위별 스타일, 차트 설정
-  - `hooks/useCampaignRanking.ts`: 캠페인별 지표 계산 및 정렬 훅
-  - `ui/RankingMetricToggle.tsx`: 메트릭 선택 토글
-  - `ui/CampaignRankingChart.tsx`: 카드 리스트 형태의 랭킹 UI
-- 공유 라이브러리 추가/리팩토링
-  - `shared/lib/metrics.ts`: 파생 지표 계산 함수 (safeDivide, calculateCTR, calculateCPC, calculateROAS)
-  - `shared/lib/campaignFilter.ts`: `aggregateByCampaign()` 캠페인별 집계 함수 추가
-  - `features/campaignTable/lib/calculations.ts`: 중복 제거, 공유 라이브러리 re-export
-- 대시보드 레이아웃 변경 (일별 추이 전체 너비 | 플랫폼 차트 + 랭킹 차트 2열 배치)
+- 타입 시스템 확장: `CampaignRaw`, `DailyStatRaw` 추가 (API 원본 응답용)
+- 엔티티별 Zod 정규화 스키마 생성
+  - `entities/campaign/schema.ts`: 캠페인 정규화 (name null → 기본값, 잘못된 status/platform → 필터링)
+  - `entities/dailyStat/schema.ts`: 일별 통계 정규화 (숫자 null → 0, 날짜 형식 통일)
+- API 레이어에서 `parseArray()` 유틸로 응답 정규화 적용
+- `safeDivide` 함수에 `Number.isFinite()` 검사 추가 (Infinity 방지)
+- 비즈니스 로직에서 중복 정규화 호출 제거 (6개 파일)
 
 **의사결정:**
 
-- Bar 차트 대신 카드 리스트 형태로 현대적인 UI 구현 (단순 막대 그래프보다 정보 밀도 높음)
-- 순위별 컬러 뱃지 (금/은/동) + 프로그레스 바로 시각적 직관성 확보
-- ROAS/CTR은 높을수록 상위(내림차순), CPC는 낮을수록 상위(오름차순) 정렬 로직
-- 기존 safeDivide, 파생 지표 계산 함수들을 shared로 이동하여 중복 제거
+- **Zod 검증 전략 선택**: 세 가지 옵션(에러 던지기, 필터링, 정규화+변환) 중 "옵션 C: 정규화+변환" 채택
+  - 에러 던지기: 정상 데이터 99개 + 비정상 1개 = 전체 폐기 → 부적절
+  - 필터링만: 데이터 손실 발생 → 부적절
+  - **정규화+변환**: 잘못된 값을 기본값으로 변환, 복구 불가능한 데이터만 필터링 → 채택
+- **잘못된 status/platform 처리**: AI 초기 제안(기본값 대체)을 거부하고 필터링으로 변경
+  - `"stopped"` → `"ended"` 대체는 데이터 의미 왜곡
+  - 스키마에 없는 값은 필터링이 데이터 무결성 측면에서 적절
+- **스키마 위치**: `shared/`가 아닌 `entities/`에 배치
+  - API 응답 검증은 엔티티의 책임
+  - FSD 아키텍처의 레이어 규칙 준수
+- **정규화 시점 단일화**: "db.json 데이터를 안전하게 처리한 뒤 사용" 요구사항을 아키텍처 레벨에서 해결
+  - 기존: 비즈니스 로직 곳곳에서 방어적 검사 (중복, 누락 위험)
+  - 개선: API 레이어에서 한 번만 정규화 → 이후 정규화된 데이터 신뢰
 
 **수정 사항:**
 
-- AI가 훅 내부에 safeDivide 함수 중복 작성 → `shared/lib/metrics.ts`로 분리
-- AI가 훅 내부에 캠페인별 집계 로직 작성 → `aggregateByCampaign` 공유 함수로 분리
-- AI가 컴포넌트 내부에 RANK_STYLES 상수 정의 → `constants/index.ts`로 이동
-- AI가 제안한 Recharts Bar 차트를 카드 리스트 UI로 재설계
+- AI가 `shared/lib/schemas.ts`에 스키마 배치 제안 → 엔티티별 분리로 변경 (FSD 원칙)
+- AI가 잘못된 platform/status에 기본값 대체 제안 → 필터링으로 변경 (데이터 무결성)
+- AI가 스키마 내부에 정규화 함수 중복 정의 → 기존 `formatters.ts` 함수 재사용으로 수정
+- 범용 `parseArray` 유틸을 스키마 파일에서 분리하여 `formatters.ts`로 이동
+
+---
+
+### 2026-04-08: 유틸리티 함수 레이어 재배치 및 타입 일관성 개선
+
+**프롬프트:**
+
+```
+FSD 아키텍처 원칙에 따라 유틸리티 함수의 레이어 배치를 검토하고 리팩토링해줘:
+
+1. 현재 shared/lib/formatters.ts에 있는 함수들의 실제 사용처 분석
+2. entities 레이어에서만 사용되는 함수는 entities/lib로 이동
+3. 특정 feature에서만 사용되는 함수는 해당 feature/lib로 이동
+4. 여러 레이어에서 공유되는 함수만 shared에 유지
+
+추가로 Campaign.startDate 타입 처리의 일관성 검토:
+- endDate는 null 허용하면서 startDate만 필수로 처리하는 근거 확인
+- 요구사항에 명시되지 않은 임의 처리가 있다면 일관되게 수정
+```
+
+**AI 작업 내용:**
+
+- 유틸리티 함수 사용처 분석 및 레이어 재배치
+  - `normalizeDate`, `normalizeNumber` → `entities/lib/normalize.ts` (스키마 전용)
+  - `parseArray` → `entities/lib/parseArray.ts` (API 레이어 전용)
+  - `formatCurrency`, `formatPercent`, `formatCPC` → `features/campaignTable/lib/formatters.ts` (테이블 전용)
+  - `formatNumber`, `formatDateRange` → `shared/lib` 유지 (다중 feature 공유)
+- `Campaign.startDate` 타입을 `string | null`로 변경 (endDate와 동일한 처리)
+- `formatDateRange`에서 null 표시를 "진행중" → "미정"으로 변경
+- `dataFilter.ts`에서 startDate null 처리 추가
+- README.md 폴더 구조 간소화
+
+**의사결정:**
+
+- **레이어 배치 원칙**: 함수는 실제 사용되는 가장 낮은 레이어에 배치
+  - entities에서만 사용 → entities/lib
+  - 특정 feature에서만 사용 → features/{name}/lib
+  - 다중 레이어에서 공유 → shared/lib
+- **startDate 타입 변경 근거**: 요구사항 스키마상 endDate만 nullable이나, 실제 db.json에는 예외 데이터 존재 가능. name이 null이면 "(이름 없음)"으로 처리하면서 startDate가 null이면 캠페인 제외하는 것은 일관성 없음
+- **"미정" 표현 선택**: "진행중"은 요구사항에 없는 임의 해석. null은 "데이터 없음"이므로 "미정"이 의미적으로 정확
+
+**수정 사항:**
+
+- AI가 formatDateRange에서 "-"로 표시 제안 → "미정 ~ 미정" 형태가 어색하지 않도록 "미정" 표현으로 변경
+- README 폴더 구조를 AI가 모든 파일 나열 → 핵심 레이어만 표시하고 생략 기호 사용
+
+---
+
+### 2026-04-08: 글로벌 필터 연동 개선 및 React Compiler 도입
+
+**프롬프트:**
+
+```
+## 글로벌 필터-테이블 상태 동기화 설계
+
+REQUIREMENTS.md 3.1, 3.3 기준으로 글로벌 필터 변경 시 테이블 상태 처리 전략 검토:
+
+현재 문제:
+- 글로벌 필터(기간/상태/매체) 변경 시 테이블 페이지네이션, 체크박스 선택이 유지됨
+- 필터 결과가 10건 미만일 때 기존 페이지 번호 유지 → 빈 페이지 표시
+- 선택된 캠페인이 새 필터 결과에 없을 경우 데이터 불일치 발생
+
+검토 항목:
+1. 페이지네이션: 필터 변경 시 1페이지로 리셋 vs 현재 페이지 유지
+2. 체크박스 선택: 전체 해제 vs 유효한 항목만 유지
+3. 검색어: 초기화 vs 유지 (요구사항 "테이블에만 적용" 고려)
+
+---
+
+## React Compiler 1.0 도입 및 메모이제이션 최적화
+
+현재 상태:
+- 수동 useCallback/useMemo 사용 중
+- React 19 + Vite 환경
+
+요청 사항:
+1. React Compiler 1.0 babel 플러그인 설정 (자동 메모이제이션)
+2. 기존 useCallback/useMemo 제거
+3. 빌드 정상 동작 확인
+
+---
+
+## CampaignTable 컴포넌트 관심사 분리
+
+현재 문제:
+- CampaignTable.tsx 300줄+ (검색/정렬/페이지네이션/선택/렌더링 로직 혼재)
+- 테스트 및 유지보수 어려움
+
+리팩토링 방향:
+1. 테이블 상태 관리 로직을 커스텀 훅으로 분리
+2. 정렬 가능한 헤더를 별도 컴포넌트로 추출
+3. 컴포넌트는 순수 렌더링 역할만 담당하도록 개선
+```
+
+**AI 작업 내용:**
+
+- `useTableState` 훅 생성 (글로벌 필터 변경 감지 및 페이지/선택 자동 초기화)
+- React Compiler babel 플러그인 설정 (`vite.config.ts`)
+- `useTableState` 확장 (검색/정렬/페이지네이션 로직 통합)
+- `SortableHeader` 컴포넌트 분리 (정렬 헤더 UI 독립화)
+- CampaignTable 309줄 → 207줄로 간소화
+
+**의사결정:**
+
+- **검색어 유지 결정**: 글로벌 필터와 테이블 검색은 별개의 필터 레이어 (요구사항 3.3 "테이블에만 적용")
+- **페이지/선택 초기화 결정**: 데이터셋 변경 시 일관성 유지 필요 (빈 페이지 방지, 유효하지 않은 선택 방지)
+- **React Compiler 설정 방식**: @vitejs/plugin-react 4.7.0 사용 중이므로 babel 플러그인 방식 적용
+- **훅 확장 vs 신규 생성**: 기존 useTableState에 데이터 처리 로직 통합하여 관심사 응집
+
+**수정 사항:**
+
+- AI가 컴포넌트 내부에 useEffect 직접 추가 제안 → 별도 훅 분리로 변경 (코드 응집도 개선)
+- React Compiler 자동 적용 여부 웹 검색으로 확인 후 수동 설정 필요함을 판단
+
+---
+
+### 2026-04-08: React Compiler 도입 의사결정 과정
+
+**프롬프트:**
+
+```
+렌더링 성능 최적화를 위해 React Compiler 도입을 검토해줘:
+1. 현재 수동 useMemo/useCallback 사용 현황 분석
+2. React Compiler 도입 시 기대 효과
+3. 도입 시 주의사항 및 트레이드오프
+```
+
+**의사결정 과정:**
+
+#### 1단계: 현재 상태 분석
+
+기존 코드베이스에서 수동 메모이제이션 사용 현황을 분석했습니다:
+
+- `useFilteredCampaigns`: 필터링 로직에 useMemo 사용
+- `usePlatformStats`: 집계 로직에 useMemo 사용
+- 여러 컴포넌트에서 이벤트 핸들러에 useCallback 사용
+
+**문제점 식별:**
+
+1. 의존성 배열 관리 부담 (누락 시 stale closure 버그)
+2. 메모이제이션 필요 여부 판단의 어려움 (과도한 최적화 vs 필요한 최적화)
+3. 코드 가독성 저하 (비즈니스 로직이 훅에 묻힘)
+
+#### 2단계: 대안 검토
+
+| 대안                          | 장점                     | 단점                        |
+| ----------------------------- | ------------------------ | --------------------------- |
+| 현재 유지 (수동 메모이제이션) | 검증된 패턴              | 유지보수 부담, 실수 가능성  |
+| React.memo 추가 적용          | 컴포넌트 단위 최적화     | 모든 컴포넌트 래핑 필요     |
+| **React Compiler 도입**       | 자동 최적화, 코드 간결화 | 새로운 기술, 빌드 설정 필요 |
+
+#### 3단계: React Compiler 선택 근거
+
+1. **Zustand와의 시너지**: 이미 선택적 구독으로 "어떤 컴포넌트가 리렌더링되는가"를 최적화함. React Compiler는 "리렌더링 시 무엇을 재계산하는가"를 최적화하여 상호 보완
+
+2. **코드 품질 향상**: useMemo/useCallback 제거로 비즈니스 로직이 더 명확해짐
+
+3. **안정성**: React 19와 함께 정식 출시되어 프로덕션 사용 가능
+
+4. **점진적 도입**: 기존 코드 수정 없이 빌드 설정만 추가하면 적용됨
+
+#### 4단계: 적용 및 검증
+
+```typescript
+// vite.config.ts 설정 추가
+react({
+  babel: {
+    plugins: ["babel-plugin-react-compiler"],
+  },
+});
+```
+
+적용 후 검증:
+
+- 빌드 정상 동작 확인
+- 기존 useMemo/useCallback 코드 제거
+- 동일한 렌더링 동작 확인
+
+**AI 작업 내용:**
+
+- React Compiler babel 플러그인 설정 (`vite.config.ts`)
+- 프로젝트 전체에서 useMemo/useCallback 제거 (6개 파일)
+- README.md에 렌더링 최적화 전략 문서화
+
+**수정 사항:**
+
+- AI가 초기에 useMemo를 일부 유지하자고 제안 → "React Compiler가 모든 케이스를 처리하므로 수동 최적화 불필요"라고 판단하여 전면 제거
+- AI가 React.memo 추가 적용을 제안 → Zustand 선택적 구독으로 이미 리렌더링 범위가 최소화되어 있어 불필요하다고 판단하여 미적용
+
+---
+
+### 2026-04-08: 코드 품질 평가 기반 린팅/에러 처리 강화
+
+**프롬프트:**
+
+```
+REQUIREMENTS.md 5.3 평가 지표 중 코드 품질(TypeScript, 린팅, 에러 핸들링) 항목에 대해 15점 만점 기준으로 현재 구현을 평가하고 감점 요인을 개선해줘:
+
+1. TypeScript 타입 어설션 제거 (useTableState.ts의 `as string`, `as number`)
+2. 린팅 자동화: Prettier 설정 + lint-staged/husky로 커밋 전 자동 검사
+3. API 에러 처리 강화: 네트워크 에러(offline), JSON 파싱 에러 세분화
+```
+
+**AI 작업 내용:**
+
+- 타입 어설션 제거: 컬럼별 분기 처리로 TypeScript 자동 추론 활용
+- Prettier 설정: `.prettierrc`, `.prettierignore` 생성
+- ESLint 설정 개선: Vite/React용 `eslint.config.mjs` 재구성, `eslint-config-prettier` 통합
+- lint-staged + husky 설정: 커밋 전 `*.{ts,tsx}` 린트/포맷 자동 실행
+- API 에러 클래스 생성: `ApiError` (HTTP 상태별 메시지), `NetworkError` (오프라인/연결 실패)
+- JSON 파싱 에러 처리 추가: `try-catch`로 응답 파싱 실패 핸들링
+- React Hooks 규칙 위반 수정: 조건부 훅 호출 패턴 4개 파일에서 발견 및 수정
+
+**의사결정:**
+
+- **타입 어설션 제거 전략**: 단순 `as` 캐스팅 대신 컬럼별 분기로 TypeScript가 타입을 자동 좁히도록 유도. `startDate`는 string 비교, 나머지는 number 연산으로 분리
+- **ESLint 설정 재구성**: 기존 `eslint-config-next`는 Next.js 전용이라 Vite 환경에서 사용 불가. `typescript-eslint` + `eslint-plugin-react-hooks` 조합으로 재구성
+- **에러 클래스 분리**: `Error` 상속 커스텀 클래스로 분리하여 호출부에서 `instanceof` 체크로 에러 유형별 처리 가능
+- **HTTP 상태 메시지 한국어화**: 사용자 친화적 메시지로 변환 (400 → "잘못된 요청입니다", 500 → "서버 오류가 발생했습니다")
+- **Hooks 규칙 위반 수정 근거**: `||` 연산자의 단축 평가로 인해 우항 훅이 조건부로 호출됨. 훅을 먼저 모두 호출한 뒤 결과를 `||`로 조합하도록 변경
+
+**수정 사항:**
+
+- AI가 초기 평가에서 린팅 점수를 과대평가 → ESLint 설정이 실제로 동작하지 않는 상태임을 확인하여 재구성
+- ESLint 실행 시 발견된 React Hooks 규칙 위반(조건부 훅 호출)을 AI 제안에 따라 즉시 수정. 기존 패턴 `const x = useStore(...) || useStore(...)` → `const a = useStore(...); const b = useStore(...); const x = a || b;`로 변경
+
+---
+
+### 2026-04-08: UX & 접근성 개선 (상태 피드백, 반응형, a11y)
+
+**프롬프트:**
+
+```
+REQUIREMENTS.md 5.3 평가 지표 중 UX & 접근성(상태 피드백, 반응형) 항목에 대해 10점 만점 기준으로 현재 구현을 평가하고 개선해줘:
+
+1. 상태 피드백: Shadcn-ui Toast(Sonner) 적용, 캠페인 등록/상태 변경 시 알림
+2. 로딩 UI: Skeleton으로 CLS 최소화 (차트, 테이블)
+3. 테이블 모바일 반응형: 스크롤 힌트 추가
+4. 접근성: ARIA labels, 키보드 네비게이션, 스크린 리더 지원
+```
+
+**AI 작업 내용:**
+
+- **Toast 시스템 도입**
+  - Shadcn-ui Sonner 컴포넌트 설치 및 설정
+  - ThemeProvider 추가 (next-themes 기반 다크모드 연동)
+  - 캠페인 등록 성공/실패 Toast 알림
+  - 일괄 상태 변경 성공/경고 Toast 알림
+
+- **Skeleton 로딩 UI 구현**
+  - `DailyTrendChart`: Y축 + 차트 영역 + 범례 Skeleton
+  - `PlatformChart`: 도넛 차트(원형) + 우측 범례 Skeleton
+  - `CampaignRankingChart`: 랭킹 카드 3개 Skeleton
+  - `CampaignTable`: 헤더 + 10개 행 Skeleton (CLS 최소화)
+
+- **테이블 모바일 반응형 개선**
+  - Table 컴포넌트에 우측 그라데이션 스크롤 힌트 추가 (md:hidden)
+  - `role="region"`, `tabIndex={0}`, `aria-label` 추가
+
+- **접근성(a11y) 강화**
+  - `SortableHeader`: `aria-sort`, 키보드 이벤트(Enter/Space), 포커스 스타일
+  - `CampaignTable`: 검색 input `aria-label`, 체크박스 `aria-label`, 페이지네이션 `aria-label`/`aria-live`
+  - `GlobalFilter`: `role="search"`, 각 필터에 `aria-labelledby` 연결
+  - `MultiSelect`: `role="listbox"`, `aria-multiselectable`, `role="option"`, `aria-selected`
+  - `DateRangePicker`: `role="group"`, 버튼에 `aria-label` (선택된 날짜 읽어줌)
+
+**의사결정:**
+
+- **Sonner 선택 근거**: Shadcn-ui의 Toast가 base-nova 스타일에서 미지원되어 대안으로 Sonner 사용. Sonner는 React 19와 호환되고 richColors 지원
+- **Skeleton 크기 일치**: 실제 컨텐츠와 동일한 크기로 Skeleton 구성하여 CLS(Cumulative Layout Shift) 제거
+- **스크롤 힌트 방식**: 그라데이션 오버레이로 시각적 힌트 제공 (모바일에서만 표시)
+- **접근성 우선순위**: 키보드 네비게이션 > ARIA labels > 스크린 리더 지원 순서로 구현
+
+**수정 사항:**
+
+- AI가 Toast 위치를 bottom-right로 제안 → top-right로 변경 (대시보드 상단에서 작업하므로 시선 이동 최소화)
+- 테이블 Skeleton에서 AI가 5개 행만 제안 → 10개로 변경 (페이지당 10건 표시와 일치)
+
+---
+
+### 2026-04-08: E2E 테스트 커버리지 확대 및 요구사항 검증
+
+**프롬프트:**
+
+```
+REQUIREMENTS.md 5.3 평가 지표의 "선택 과제 (가산점) - 테스트 코드" 항목에 대해 현재 E2E 테스트 커버리지를 분석하고 개선해줘:
+
+1. 기존 테스트와 요구사항 간 갭 분석 (어떤 필수 기능이 테스트되지 않는지)
+2. 평가 포인트(일괄 상태 변경, 등록 후 즉시 반영, 랭킹 정렬 방향)에 대한 E2E 시나리오 추가
+3. 단순 렌더링 테스트보다 사용자 인터랙션 기반 테스트 설계
+```
+
+**AI 작업 내용:**
+
+- 기존 E2E 테스트(19개)와 REQUIREMENTS.md 요구사항 간 커버리지 갭 분석
+- 누락된 필수 기능에 대한 E2E 테스트 추가 (69개 추가, 총 88개)
+  - `campaign-table.spec.ts`: 테이블 렌더링, 검색, 정렬, 페이지네이션, 일괄 상태 변경
+  - `campaign-modal.spec.ts`: 모달 열기/닫기, 입력 필드, 유효성 검사, 등록 후 즉시 반영
+  - `daily-trend-chart.spec.ts`: 차트 렌더링, 메트릭 토글, 툴팁, 필터 동기화
+  - `platform-chart.spec.ts` 확장: 랭킹 정렬 방향 검증 (ROAS/CTR 내림차순, CPC 오름차순)
+
+**의사결정:**
+
+- **테스트 범위 판단 기준 재정립**: 단순히 "테스트 코드 작성해줘"가 아닌, REQUIREMENTS.md의 평가 포인트를 기준으로 테스트 필요성 판단
+  - 기존 테스트: UI 렌더링 위주로 기능 동작 검증 부족
+  - 추가 테스트: 평가 포인트(일괄 상태 변경, 등록 후 즉시 반영, 정렬 방향)에 집중
+
+- **테스트 설계 개선**: AI가 제안한 테스트 구조를 검토하여 실제 사용자 시나리오 기반으로 재설계
+  - 캠페인 등록 → 테이블 검색 → 등록 확인의 E2E 플로우
+  - 랭킹 정렬 시 실제 값 추출 및 정렬 순서 검증
+
+- **평가 포인트별 테스트 커버리지**:
+  - 3.3 일괄 상태 변경: 체크박스 선택, 상태 드롭다운, 카운트 업데이트 검증
+  - 3.4 등록 후 즉시 반영: 모달 닫힘 → 테이블 검색 → 새 캠페인 표시 확인
+  - 4.2 정렬 방향: ROAS/CTR `>=` 검증, CPC `<=` 검증으로 내림/오름차순 확인
+
+**수정 사항:**
+
+- AI가 초기에 모든 컴포넌트에 대해 단순 렌더링 테스트만 제안 → "렌더링됨" 확인보다 "동작함" 확인이 중요하다고 판단하여 인터랙션 테스트 추가
+- AI가 정렬 테스트에서 단순히 "정렬됨" 확인 제안 → 실제 값을 추출하여 순서 검증하는 방식으로 변경
 
 ---
 

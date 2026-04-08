@@ -4,8 +4,9 @@ import {
   useFilterStore,
   selectEffectiveStatus,
   selectEffectivePlatform,
-} from "@/features/filter";
-import { useDataStore } from "@/shared/stores";
+} from "@/shared/stores";
+import { useCampaignStore } from "@/entities/campaign";
+import { useDailyStatStore } from "@/entities/dailyStat";
 import {
   getFilteredCampaigns,
   getFilteredDailyStats,
@@ -20,10 +21,17 @@ import type { RankingMetric, CampaignRankingStat } from "../types";
 import { RANKING_METRIC_OPTIONS, RANKING_COLORS } from "../constants";
 
 export function useCampaignRanking(metric: RankingMetric) {
-  const campaigns = useDataStore((state) => state.campaigns);
-  const dailyStats = useDataStore((state) => state.dailyStats);
-  const isLoading = useDataStore((state) => state.isLoading);
-  const error = useDataStore((state) => state.error);
+  const campaigns = useCampaignStore((state) => state.campaigns);
+  const dailyStats = useDailyStatStore((state) => state.dailyStats);
+
+  // 훅은 항상 동일한 순서로 호출되어야 함 (React Hooks 규칙)
+  const campaignLoading = useCampaignStore((state) => state.isLoading);
+  const dailyStatLoading = useDailyStatStore((state) => state.isLoading);
+  const campaignError = useCampaignStore((state) => state.error);
+  const dailyStatError = useDailyStatStore((state) => state.error);
+
+  const isLoading = campaignLoading || dailyStatLoading;
+  const error = campaignError || dailyStatError;
 
   const dateRange = useFilterStore((state) => state.dateRange);
   const effectiveStatus = useFilterStore(selectEffectiveStatus);

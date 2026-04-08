@@ -1,8 +1,13 @@
 import { api } from "@/shared/api";
+import { parseArray } from "@/entities/lib/parseArray";
 import type { Campaign } from "./types";
+import { campaignSchema } from "./schema";
 
 export const campaignApi = {
-  getAll: () => api.get<Campaign[]>("/campaigns"),
+  getAll: async (): Promise<Campaign[]> => {
+    const raw = await api.get<unknown[]>("/campaigns");
+    return parseArray(campaignSchema, raw);
+  },
   getById: (id: string) => api.get<Campaign>(`/campaigns/${id}`),
   create: (data: Omit<Campaign, "id">) =>
     api.post<Campaign>("/campaigns", data),
