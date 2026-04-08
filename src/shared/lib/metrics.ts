@@ -1,10 +1,12 @@
-// 안전한 나눗셈 (0으로 나누기 방지)
+// 안전한 나눗셈 (0으로 나누기, Infinity 방지)
 export function safeDivide(
   numerator: number,
   denominator: number
 ): number | null {
   if (denominator === 0) return null;
-  return numerator / denominator;
+  const result = numerator / denominator;
+  if (!Number.isFinite(result)) return null;
+  return result;
 }
 
 // CTR (%) = (총 클릭 수 / 총 노출 수) × 100

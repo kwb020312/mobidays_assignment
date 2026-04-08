@@ -7,12 +7,7 @@ import {
 } from "@/shared/stores";
 import { useCampaignStore } from "@/entities/campaign";
 import { useDailyStatStore } from "@/entities/dailyStat";
-import {
-  normalizeDate,
-  normalizeNumber,
-  getFilteredCampaignIds,
-  getFilteredDailyStats,
-} from "@/shared/lib";
+import { getFilteredCampaignIds, getFilteredDailyStats } from "@/shared/lib";
 import type { AggregatedDailyStat } from "../types";
 
 export function useFilteredDailyStats() {
@@ -40,23 +35,20 @@ export function useFilteredDailyStats() {
     dateRange,
   });
 
-  // 날짜별로 집계
+  // 날짜별로 집계 (API 레이어에서 정규화 완료됨)
   const dateMap = new Map<string, AggregatedDailyStat>();
 
   for (const stat of filteredStats) {
-    const normalizedDate = normalizeDate(stat.date);
-    if (!normalizedDate) continue;
-
-    const existing = dateMap.get(normalizedDate);
+    const existing = dateMap.get(stat.date);
 
     if (existing) {
-      existing.impressions += normalizeNumber(stat.impressions);
-      existing.clicks += normalizeNumber(stat.clicks);
+      existing.impressions += stat.impressions;
+      existing.clicks += stat.clicks;
     } else {
-      dateMap.set(normalizedDate, {
-        date: normalizedDate,
-        impressions: normalizeNumber(stat.impressions),
-        clicks: normalizeNumber(stat.clicks),
+      dateMap.set(stat.date, {
+        date: stat.date,
+        impressions: stat.impressions,
+        clicks: stat.clicks,
       });
     }
   }

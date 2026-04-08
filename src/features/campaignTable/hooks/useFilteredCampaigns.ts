@@ -7,11 +7,7 @@ import {
 } from "@/shared/stores";
 import { useCampaignStore } from "@/entities/campaign";
 import { useDailyStatStore } from "@/entities/dailyStat";
-import {
-  normalizeDate,
-  getFilteredCampaigns,
-  filterDailyStatsByDate,
-} from "@/shared/lib";
+import { getFilteredCampaigns, filterDailyStatsByDate } from "@/shared/lib";
 import type { DailyStat } from "@/shared/types";
 import type { CampaignTableRow } from "../types";
 import {
@@ -63,8 +59,8 @@ export function useFilteredCampaigns() {
         name: campaign.name,
         status: campaign.status,
         platform: campaign.platform,
-        startDate: normalizeDate(campaign.startDate) || campaign.startDate,
-        endDate: normalizeDate(campaign.endDate),
+        startDate: campaign.startDate,
+        endDate: campaign.endDate,
         totalCost: metrics.totalCost,
         ctr: calculateCTR(metrics.totalClicks, metrics.totalImpressions),
         cpc: calculateCPC(metrics.totalCost, metrics.totalClicks),

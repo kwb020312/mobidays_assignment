@@ -8,7 +8,6 @@ import {
 import { useCampaignStore } from "@/entities/campaign";
 import { useDailyStatStore } from "@/entities/dailyStat";
 import {
-  normalizeNumber,
   getFilteredCampaigns,
   getFilteredDailyStats,
   getFilteredCampaignIds,
@@ -62,7 +61,7 @@ export function usePlatformStats(metric: PlatformMetric) {
     dateRange,
   });
 
-  // 플랫폼별 집계
+  // 플랫폼별 집계 (API 레이어에서 정규화 완료됨)
   const platformAggregation = new Map<Platform, PlatformAggregation>();
 
   for (const stat of filteredStats) {
@@ -71,16 +70,16 @@ export function usePlatformStats(metric: PlatformMetric) {
 
     const existing = platformAggregation.get(platform);
     if (existing) {
-      existing.cost += normalizeNumber(stat.cost);
-      existing.impressions += normalizeNumber(stat.impressions);
-      existing.clicks += normalizeNumber(stat.clicks);
-      existing.conversions += normalizeNumber(stat.conversions);
+      existing.cost += stat.cost;
+      existing.impressions += stat.impressions;
+      existing.clicks += stat.clicks;
+      existing.conversions += stat.conversions;
     } else {
       platformAggregation.set(platform, {
-        cost: normalizeNumber(stat.cost),
-        impressions: normalizeNumber(stat.impressions),
-        clicks: normalizeNumber(stat.clicks),
-        conversions: normalizeNumber(stat.conversions),
+        cost: stat.cost,
+        impressions: stat.impressions,
+        clicks: stat.clicks,
+        conversions: stat.conversions,
       });
     }
   }

@@ -139,14 +139,14 @@ React Query(TanStack Query)는 서버 상태 관리의 사실상 표준이지만
 
 #### 도입 시 이점이 제한적인 이유
 
-| React Query 기능 | 본 프로젝트 적용 가능성 |
-| --- | --- |
-| 캐싱/재검증 | 새로고침 시 초기화 허용 (요구사항) → **불필요** |
-| stale-while-revalidate | 실시간 동기화 없음 → **불필요** |
-| 중복 요청 방지 | `isInitialized` 플래그로 이미 처리 |
-| 로딩/에러 상태 | Zustand에서 동일하게 구현 가능 |
-| 낙관적 업데이트 | 이미 Zustand store에서 구현 |
-| 무한 스크롤/페이지네이션 | 클라이언트 측 페이지네이션으로 충분 |
+| React Query 기능         | 본 프로젝트 적용 가능성                         |
+| ------------------------ | ----------------------------------------------- |
+| 캐싱/재검증              | 새로고침 시 초기화 허용 (요구사항) → **불필요** |
+| stale-while-revalidate   | 실시간 동기화 없음 → **불필요**                 |
+| 중복 요청 방지           | `isInitialized` 플래그로 이미 처리              |
+| 로딩/에러 상태           | Zustand에서 동일하게 구현 가능                  |
+| 낙관적 업데이트          | 이미 Zustand store에서 구현                     |
+| 무한 스크롤/페이지네이션 | 클라이언트 측 페이지네이션으로 충분             |
 
 #### 현재 구조의 적합성
 
@@ -173,13 +173,32 @@ React Query(TanStack Query)는 서버 상태 관리의 사실상 표준이지만
 | SVG 기반으로 반응형 지원 우수 | 대용량 데이터(10만+ 포인트) 시 Canvas 기반 대비 성능 저하 |
 | 타입스크립트 지원 우수        | -                                                         |
 
-### 폼 관리: React Hook Form + Zod
+### 스키마 검증: Zod (폼 + API 정규화 통합)
 
-| 선택 이유                                                                                                                       | 트레이드오프                                                                  |
-| ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | --- |
-| **Uncontrolled 방식**으로 필드 간 동적 의존성(예산↔집행금액 최대치, 시작일↔종료일 최소값)을 스키마 레벨에서 선언적으로 처리     | Controlled 방식 대비 폼 상태에 직접 접근하기 불편 (watch/getValues 필요)      |
-| Controlled였다면 예산 변경 시 집행금액 검증을 useEffect + 상태 동기화로 관리해야 했을 것 → Zod `.refine()`으로 코드량 대폭 감소 | 복잡한 동적 UI(필드 값에 따른 다른 필드 disabled 등)는 여전히 watch 조합 필요 |
-| 입력마다 리렌더링 없이 submit 시점에 전체 검증 → 6개 필드 폼에서 불필요한 렌더링 제거                                           | -                                                                             |     |
+Zod를 폼 검증뿐 아니라 **API 응답 정규화**에도 활용하여 데이터 안전성을 단일 레이어에서 보장합니다.
+
+| 활용 영역 | 선택 이유 | 트레이드오프 |
+| --- | --- | --- |
+| **폼 검증** (React Hook Form) | Uncontrolled 방식으로 필드 간 동적 의존성(예산↔집행금액)을 `.refine()`으로 선언적 처리 | Controlled 대비 폼 상태 직접 접근 불편 |
+| **API 정규화** (entities 스키마) | API 레이어에서 한 번만 정규화 → 비즈니스 로직에서 방어 코드 불필요 | 스키마 정의 추가 비용 |
+
+**API 정규화 없이 직접 구현했다면:**
+```typescript
+// ❌ 비즈니스 로직 곳곳에서 방어 코드 필요
+const cost = typeof stat.cost === "number" ? stat.cost : 0;
+const date = stat.date?.replace(/\//g, "-") ?? null;
+if (!date) continue;
+```
+
+**Zod 스키마로 해결:**
+```typescript
+// ✅ API 레이어에서 한 번만 정규화, 이후 정규화된 데이터 신뢰
+const dailyStatSchema = z.object({
+  cost: z.number().nullable().transform(normalizeNumber),
+  date: z.string().nullable().transform(normalizeDate),
+});
+// 비즈니스 로직: stat.cost, stat.date 그대로 사용
+```
 
 ### 스타일링: Tailwind CSS 4
 
@@ -210,7 +229,8 @@ src/
 ├── app/                    # 앱 레벨 설정 (providers)
 ├── entities/               # 도메인 모델 (campaign, dailyStat)
 │   └── campaign/
-│       ├── api.ts         # API 호출
+│       ├── api.ts         # API 호출 + 정규화
+│       ├── schema.ts      # Zod 정규화 스키마
 │       ├── store.ts       # Zustand 상태
 │       └── types.ts
 ├── features/               # 기능 모듈
@@ -407,10 +427,10 @@ export function calculateROAS(
 
 #### 전역 상태 vs 지역 상태
 
-| 구분 | 상태 | 사용처 |
-|------|------|--------|
-| **전역** (Zustand) | campaign/dailyStat store, filterStore | 여러 feature에서 공유 |
-| **지역** (useState) | 검색어, 정렬, 페이지, 메트릭 선택 | 해당 컴포넌트 내부 |
+| 구분                | 상태                                  | 사용처                |
+| ------------------- | ------------------------------------- | --------------------- |
+| **전역** (Zustand)  | campaign/dailyStat store, filterStore | 여러 feature에서 공유 |
+| **지역** (useState) | 검색어, 정렬, 페이지, 메트릭 선택     | 해당 컴포넌트 내부    |
 
 **분리 기준**: "이 상태가 변경되면 다른 컴포넌트도 업데이트되어야 하는가?"
 
@@ -437,41 +457,32 @@ export function calculateROAS(
 
 ### 3. 데이터 전처리 및 예외 처리
 
-#### Null Safety 처리
+#### API 레이어에서 정규화 (Zod 스키마)
+
+API 응답을 받는 시점에 Zod 스키마로 정규화하여, 비즈니스 로직에서는 정규화된 데이터를 신뢰하고 사용합니다.
 
 ```typescript
-// 숫자 정규화: null, undefined, NaN → 0
-export function normalizeNumber(value: number | null | undefined): number {
-  if (value === null || value === undefined || Number.isNaN(value)) {
-    return 0;
-  }
-  return value;
-}
+// entities/campaign/schema.ts
+export const campaignSchema = z.object({
+  name: z.string().nullable().transform((v) => v ?? "(이름 없음)"),
+  budget: z.number().nullable().transform(normalizeNumber),
+  startDate: z.string().nullable().transform(normalizeDate),
+  // ...
+});
 
-// 날짜 정규화: 다양한 포맷 통일 (YYYY/MM/DD → YYYY-MM-DD)
-export function normalizeDate(date: string | null | undefined): string | null {
-  if (!date) return null;
-  return date.replace(/\//g, "-");
-}
+// 잘못된 platform/status는 필터링 제외 (기본값 대체 X)
+platform: z.enum(["Google", "Meta", "Naver"]),
+status: z.enum(["active", "paused", "ended"]),
 ```
 
-#### Division by Zero 방지
+#### Division by Zero 및 Infinity 방지
 
 ```typescript
-// 파생 지표 계산 시 안전한 나눗셈
 function safeDivide(numerator: number, denominator: number): number | null {
   if (denominator === 0) return null;
-  return numerator / denominator;
-}
-
-// CTR (%) = (클릭수 / 노출수) × 100
-export function calculateCTR(
-  clicks: number,
-  impressions: number
-): number | null {
-  const result = safeDivide(clicks, impressions);
-  if (result === null) return null;
-  return result * 100;
+  const result = numerator / denominator;
+  if (!Number.isFinite(result)) return null; // Infinity 방지
+  return result;
 }
 ```
 
@@ -479,12 +490,12 @@ export function calculateCTR(
 
 ### 4. 에러 처리 전략
 
-| 에러 유형 | 처리 위치 | 처리 방식 |
-| --- | --- | --- |
-| API 에러 (4xx, 5xx) | `shared/api/client.ts` | Error throw → store에서 catch |
-| 초기 로드 실패 | `DataProvider` | 에러 UI 표시 |
-| 런타임 에러 | `ErrorBoundary` | 앱 크래시 방지 |
-| 폼 유효성 에러 | `react-hook-form` + `zod` | 필드별 에러 메시지 |
+| 에러 유형           | 처리 위치                 | 처리 방식                     |
+| ------------------- | ------------------------- | ----------------------------- |
+| API 에러 (4xx, 5xx) | `shared/api/client.ts`    | Error throw → store에서 catch |
+| 초기 로드 실패      | `DataProvider`            | 에러 UI 표시                  |
+| 런타임 에러         | `ErrorBoundary`           | 앱 크래시 방지                |
+| 폼 유효성 에러      | `react-hook-form` + `zod` | 필드별 에러 메시지            |
 
 ### 5. 재사용 가능한 컴포넌트 패턴
 
@@ -543,12 +554,12 @@ export const campaignFormSchema = z
 
 ## 설계 트레이드오프 요약
 
-| 결정 사항        | 선택                            | 트레이드오프                                       |
-| ---------------- | ------------------------------- | -------------------------------------------------- |
-| 아키텍처         | FSD (Feature-Sliced Design)     | 초기 학습 비용 vs 장기 유지보수성 향상             |
-| 상태 관리        | Zustand                         | React 외부 상태 vs 선택적 구독으로 리렌더링 최적화 |
+| 결정 사항        | 선택                            | 트레이드오프                                        |
+| ---------------- | ------------------------------- | --------------------------------------------------- |
+| 아키텍처         | FSD (Feature-Sliced Design)     | 초기 학습 비용 vs 장기 유지보수성 향상              |
+| 상태 관리        | Zustand                         | React 외부 상태 vs 선택적 구독으로 리렌더링 최적화  |
 | 서버 상태        | Zustand (React Query 미도입)    | 캐싱/재검증 미지원 vs 현재 요구사항에 적합한 단순성 |
-| filterStore 위치 | shared 레이어                   | shared의 비즈니스 로직 vs cross-cutting 상태 공유  |
-| MultiSelect 위치 | features/filter 내부            | 재사용성 포기 vs 간결한 API 유지 (YAGNI)           |
-| 지표 계산 함수   | shared(범용) + features(도메인) | 분산 배치 vs 적절한 응집도                         |
-| 폼 검증          | Zod + React Hook Form           | 추가 의존성 vs 선언적 크로스 필드 검증             |
+| filterStore 위치 | shared 레이어                   | shared의 비즈니스 로직 vs cross-cutting 상태 공유   |
+| MultiSelect 위치 | features/filter 내부            | 재사용성 포기 vs 간결한 API 유지 (YAGNI)            |
+| 지표 계산 함수   | shared(범용) + features(도메인) | 분산 배치 vs 적절한 응집도                          |
+| 폼 검증          | Zod + React Hook Form           | 추가 의존성 vs 선언적 크로스 필드 검증              |

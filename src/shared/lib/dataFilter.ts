@@ -1,6 +1,5 @@
 import { parseISO, isWithinInterval } from "date-fns";
 import type { Campaign, DailyStat, Platform, CampaignStatus } from "@/shared/types";
-import { normalizeDate } from "./formatters";
 
 export interface CampaignFilterParams {
   campaigns: Campaign[];
@@ -17,6 +16,7 @@ export interface DailyStatFilterParams {
 
 /**
  * 필터 조건에 맞는 캠페인 ID Set을 반환
+ * (API 레이어에서 정규화 완료됨)
  */
 export function getFilteredCampaignIds({
   campaigns,
@@ -32,15 +32,10 @@ export function getFilteredCampaignIds({
     // 플랫폼 필터
     if (!effectivePlatform.has(campaign.platform)) continue;
 
-    // 시작일이 없으면 제외
-    const normalizedStartDate = normalizeDate(campaign.startDate);
-    if (!normalizedStartDate) continue;
-
     // 집행 기간 필터: 캠페인 기간과 필터 기간이 겹치는지 확인
-    const campaignStart = parseISO(normalizedStartDate);
-    const normalizedEndDate = normalizeDate(campaign.endDate);
-    const campaignEnd = normalizedEndDate
-      ? parseISO(normalizedEndDate)
+    const campaignStart = parseISO(campaign.startDate);
+    const campaignEnd = campaign.endDate
+      ? parseISO(campaign.endDate)
       : new Date(2099, 11, 31);
 
     const hasOverlap =
@@ -66,22 +61,21 @@ export function getFilteredCampaigns(
 
 /**
  * 날짜 범위 내의 DailyStat만 필터링
+ * (API 레이어에서 정규화 완료됨)
  */
 export function filterDailyStatsByDate(
   dailyStats: DailyStat[],
   dateRange: { from: Date; to: Date }
 ): DailyStat[] {
   return dailyStats.filter((stat) => {
-    const normalizedDate = normalizeDate(stat.date);
-    if (!normalizedDate) return false;
-
-    const statDate = parseISO(normalizedDate);
+    const statDate = parseISO(stat.date);
     return isWithinInterval(statDate, { start: dateRange.from, end: dateRange.to });
   });
 }
 
 /**
  * 필터링된 캠페인 ID와 날짜 범위로 DailyStat 필터링
+ * (API 레이어에서 정규화 완료됨)
  */
 export function getFilteredDailyStats({
   dailyStats,
@@ -90,11 +84,7 @@ export function getFilteredDailyStats({
 }: DailyStatFilterParams): DailyStat[] {
   return dailyStats.filter((stat) => {
     if (!filteredCampaignIds.has(stat.campaignId)) return false;
-
-    const normalizedDate = normalizeDate(stat.date);
-    if (!normalizedDate) return false;
-
-    const statDate = parseISO(normalizedDate);
+    const statDate = parseISO(stat.date);
     return isWithinInterval(statDate, { start: dateRange.from, end: dateRange.to });
   });
 }
@@ -111,6 +101,7 @@ export interface CampaignAggregation {
 
 /**
  * DailyStat 배열을 캠페인별로 집계
+ * (API 레이어에서 Zod 스키마로 정규화 완료됨)
  */
 export function aggregateByCampaign(
   dailyStats: DailyStat[]
@@ -119,25 +110,21 @@ export function aggregateByCampaign(
 
   for (const stat of dailyStats) {
     const existing = aggregation.get(stat.campaignId);
-    const cost = typeof stat.cost === "number" ? stat.cost : 0;
-    const impressions = typeof stat.impressions === "number" ? stat.impressions : 0;
-    const clicks = typeof stat.clicks === "number" ? stat.clicks : 0;
-    const conversions = typeof stat.conversions === "number" ? stat.conversions : 0;
-    const conversionsValue = typeof stat.conversionsValue === "number" ? stat.conversionsValue : 0;
+    const conversionsValue = stat.conversionsValue ?? 0;
 
     if (existing) {
-      existing.totalCost += cost;
-      existing.totalImpressions += impressions;
-      existing.totalClicks += clicks;
-      existing.totalConversions += conversions;
+      existing.totalCost += stat.cost;
+      existing.totalImpressions += stat.impressions;
+      existing.totalClicks += stat.clicks;
+      existing.totalConversions += stat.conversions;
       existing.totalConversionsValue += conversionsValue;
     } else {
       aggregation.set(stat.campaignId, {
         campaignId: stat.campaignId,
-        totalCost: cost,
-        totalImpressions: impressions,
-        totalClicks: clicks,
-        totalConversions: conversions,
+        totalCost: stat.cost,
+        totalImpressions: stat.impressions,
+        totalClicks: stat.clicks,
+        totalConversions: stat.conversions,
         totalConversionsValue: conversionsValue,
       });
     }
