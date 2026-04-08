@@ -218,6 +218,72 @@ const dailyStatSchema = z.object({
 | db.json 원본 유지 요구사항 충족              | 프로덕션 환경에서는 사용 불가    |
 | 개발 중 실제 HTTP 요청/응답 흐름 테스트 가능 | -                                |
 
+### 렌더링 최적화: React Compiler
+
+React 19와 함께 정식 출시된 React Compiler를 도입하여 **자동 메모이제이션**을 적용했습니다.
+
+#### 도입 배경
+
+```typescript
+// ❌ 기존 방식: 수동 메모이제이션
+const filteredData = useMemo(() => {
+  return campaigns.filter(c => c.status === status);
+}, [campaigns, status]);
+
+const handleClick = useCallback(() => {
+  setPage(1);
+}, []);
+
+// ✅ React Compiler: 자동 메모이제이션
+// useMemo/useCallback 없이 동일한 최적화 효과
+const filteredData = campaigns.filter(c => c.status === status);
+const handleClick = () => setPage(1);
+```
+
+#### 선택 이유와 트레이드오프
+
+| 선택 이유                                              | 트레이드오프                          |
+| ------------------------------------------------------ | ------------------------------------- |
+| useMemo/useCallback 수동 관리 제거로 코드 간결화       | 비교적 새로운 기능 (2024년 정식 출시) |
+| 의존성 배열 오류 (stale closure) 원천 방지             | 빌드 시간 약간 증가                   |
+| 인라인 함수/객체도 안전하게 사용 가능                  | 일부 복잡한 패턴에서 수동 최적화 필요 |
+| Zustand 선택적 구독과 결합하여 이중 최적화 효과        | -                                     |
+
+#### 설정 방법
+
+```typescript
+// vite.config.ts
+export default defineConfig({
+  plugins: [
+    react({
+      babel: {
+        plugins: ["babel-plugin-react-compiler"],
+      },
+    }),
+  ],
+});
+```
+
+#### 최적화 전략 요약
+
+본 프로젝트는 **두 가지 레벨의 리렌더링 최적화**를 적용합니다:
+
+1. **상태 구독 레벨 (Zustand)**: 필요한 상태만 선택적으로 구독하여 상태 변경 시 해당 컴포넌트만 리렌더링
+2. **컴포넌트 레벨 (React Compiler)**: 리렌더링 시 변경되지 않은 값/함수를 자동으로 재사용
+
+```
+[필터 상태 변경]
+     │
+     ▼
+[Zustand 선택적 구독] ──→ 해당 상태를 구독하는 컴포넌트만 리렌더링
+     │
+     ▼
+[React Compiler] ──→ 리렌더링 시 변경된 값만 재계산
+     │
+     ▼
+[최소한의 DOM 업데이트]
+```
+
 ---
 
 ## 폴더 구조 및 아키텍처
