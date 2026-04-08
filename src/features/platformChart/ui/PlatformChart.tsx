@@ -103,11 +103,11 @@ export function PlatformChart() {
             선택한 조건에 해당하는 데이터가 없습니다.
           </div>
         ) : (
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col items-center gap-4 md:flex-row">
             {/* 좌측: 도넛 차트 */}
             <ChartContainer
               config={PLATFORM_CHART_CONFIG}
-              className="aspect-square h-[280px] flex-1"
+              className="aspect-square h-[280px] w-full md:w-auto md:flex-1"
             >
               <PieChart>
                 <ChartTooltip
@@ -175,7 +175,7 @@ export function PlatformChart() {
             </ChartContainer>
 
             {/* 우측: 총액 + 순위별 범례 */}
-            <div className="flex flex-1 flex-col gap-3">
+            <div className="flex w-full flex-col gap-3 md:w-auto md:flex-1">
               {/* 총액 */}
               <div className="border-b pb-2">
                 <p className="text-xs text-muted-foreground">
