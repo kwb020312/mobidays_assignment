@@ -23,8 +23,9 @@ export function GlobalFilter() {
       aria-label="캠페인 필터"
     >
       {/* 필터 행 */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
+        {/* 집행 기간 */}
+        <div className="flex items-center justify-between gap-2 md:justify-start">
           <span
             id="date-range-label"
             className="text-sm font-medium text-muted-foreground"
@@ -38,9 +39,13 @@ export function GlobalFilter() {
           />
         </div>
 
-        <div className="h-6 w-px bg-border" aria-hidden="true" />
+        <div
+          className="hidden h-6 w-px bg-border md:block"
+          aria-hidden="true"
+        />
 
-        <div className="flex items-center gap-2">
+        {/* 상태 */}
+        <div className="flex items-center justify-between gap-2 md:justify-start">
           <span
             id="status-label"
             className="text-sm font-medium text-muted-foreground"
@@ -56,9 +61,13 @@ export function GlobalFilter() {
           />
         </div>
 
-        <div className="h-6 w-px bg-border" aria-hidden="true" />
+        <div
+          className="hidden h-6 w-px bg-border md:block"
+          aria-hidden="true"
+        />
 
-        <div className="flex items-center gap-2">
+        {/* 매체 */}
+        <div className="flex items-center justify-between gap-2 md:justify-start">
           <span
             id="platform-label"
             className="text-sm font-medium text-muted-foreground"
@@ -74,11 +83,13 @@ export function GlobalFilter() {
           />
         </div>
 
-        <div className="ml-auto">
+        {/* 초기화 버튼 */}
+        <div className="md:ml-auto">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={reset}
+            className="w-full md:w-auto"
             aria-label="필터 초기화"
           >
             <RotateCcw
@@ -91,8 +102,10 @@ export function GlobalFilter() {
         </div>
       </div>
 
-      {/* 날짜 프리셋 버튼 */}
-      <DatePresets onChange={setDateRange} />
+      {/* 날짜 프리셋 버튼 - 모바일에서 숨김 */}
+      <div className="hidden md:block">
+        <DatePresets onChange={setDateRange} />
+      </div>
     </div>
   );
 }

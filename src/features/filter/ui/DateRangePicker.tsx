@@ -50,69 +50,83 @@ export function DateRangePicker({
 
   return (
     <div
-      className={cn("flex items-center gap-2", className)}
+      className={cn(
+        "flex flex-col gap-2 sm:flex-row sm:items-center",
+        className
+      )}
       role="group"
       aria-labelledby={ariaLabelledby}
     >
-      <Popover>
-        <PopoverTrigger
-          render={
-            <Button
-              variant="outline"
-              className="w-[140px] justify-start text-left font-normal"
-              aria-label={`시작일 선택: ${format(value.from, "yyyy년 M월 d일", { locale: ko })}`}
-            >
-              <CalendarIcon
-                data-icon="inline-start"
-                className="text-muted-foreground"
-                aria-hidden="true"
-              />
-              {format(value.from, "yyyy.MM.dd", { locale: ko })}
-            </Button>
-          }
-        />
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={value.from}
-            onSelect={handleSelect("from")}
-            defaultMonth={value.from}
-            {...calendarProps}
+      {/* 시작일 */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground sm:hidden">시작</span>
+        <Popover>
+          <PopoverTrigger
+            render={
+              <Button
+                variant="outline"
+                className="w-[140px] justify-start text-left font-normal"
+                aria-label={`시작일 선택: ${format(value.from, "yyyy년 M월 d일", { locale: ko })}`}
+              >
+                <CalendarIcon
+                  data-icon="inline-start"
+                  className="text-muted-foreground"
+                  aria-hidden="true"
+                />
+                {format(value.from, "yyyy.MM.dd", { locale: ko })}
+              </Button>
+            }
           />
-        </PopoverContent>
-      </Popover>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={value.from}
+              onSelect={handleSelect("from")}
+              defaultMonth={value.from}
+              {...calendarProps}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
 
-      <span className="text-muted-foreground" aria-hidden="true">
+      <span
+        className="hidden text-muted-foreground sm:block"
+        aria-hidden="true"
+      >
         ~
       </span>
 
-      <Popover>
-        <PopoverTrigger
-          render={
-            <Button
-              variant="outline"
-              className="w-[140px] justify-start text-left font-normal"
-              aria-label={`종료일 선택: ${format(value.to, "yyyy년 M월 d일", { locale: ko })}`}
-            >
-              <CalendarIcon
-                data-icon="inline-start"
-                className="text-muted-foreground"
-                aria-hidden="true"
-              />
-              {format(value.to, "yyyy.MM.dd", { locale: ko })}
-            </Button>
-          }
-        />
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={value.to}
-            onSelect={handleSelect("to")}
-            defaultMonth={value.to}
-            {...calendarProps}
+      {/* 종료일 */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground sm:hidden">종료</span>
+        <Popover>
+          <PopoverTrigger
+            render={
+              <Button
+                variant="outline"
+                className="w-[140px] justify-start text-left font-normal"
+                aria-label={`종료일 선택: ${format(value.to, "yyyy년 M월 d일", { locale: ko })}`}
+              >
+                <CalendarIcon
+                  data-icon="inline-start"
+                  className="text-muted-foreground"
+                  aria-hidden="true"
+                />
+                {format(value.to, "yyyy.MM.dd", { locale: ko })}
+              </Button>
+            }
           />
-        </PopoverContent>
-      </Popover>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={value.to}
+              onSelect={handleSelect("to")}
+              defaultMonth={value.to}
+              {...calendarProps}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
   );
 }
