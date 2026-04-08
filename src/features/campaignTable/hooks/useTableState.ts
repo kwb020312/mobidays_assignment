@@ -39,19 +39,31 @@ export function useTableState({ data }: UseTableStateOptions) {
   // 정렬
   const sortedData = sortState.column
     ? [...searchedData].sort((a, b) => {
-        const aVal = a[sortState.column!];
-        const bVal = b[sortState.column!];
+        const column = sortState.column;
+        if (column === null) return 0;
+
+        // 컬럼별 타입 안전한 비교
+        if (column === "startDate") {
+          const aVal = a.startDate;
+          const bVal = b.startDate;
+
+          if (aVal === null && bVal === null) return 0;
+          if (aVal === null) return 1;
+          if (bVal === null) return -1;
+
+          const comparison = aVal.localeCompare(bVal);
+          return sortState.direction === "asc" ? comparison : -comparison;
+        }
+
+        // 숫자 컬럼: totalCost, ctr, cpc, roas
+        const aVal = a[column];
+        const bVal = b[column];
 
         if (aVal === null && bVal === null) return 0;
         if (aVal === null) return 1;
         if (bVal === null) return -1;
 
-        if (sortState.column === "startDate") {
-          const comparison = (aVal as string).localeCompare(bVal as string);
-          return sortState.direction === "asc" ? comparison : -comparison;
-        }
-
-        const comparison = (aVal as number) - (bVal as number);
+        const comparison = aVal - bVal;
         return sortState.direction === "asc" ? comparison : -comparison;
       })
     : searchedData;

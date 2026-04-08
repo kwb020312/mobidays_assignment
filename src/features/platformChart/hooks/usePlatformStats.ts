@@ -26,8 +26,15 @@ interface PlatformAggregation {
 export function usePlatformStats(metric: PlatformMetric) {
   const campaigns = useCampaignStore((state) => state.campaigns);
   const dailyStats = useDailyStatStore((state) => state.dailyStats);
-  const isLoading = useCampaignStore((state) => state.isLoading) || useDailyStatStore((state) => state.isLoading);
-  const error = useCampaignStore((state) => state.error) || useDailyStatStore((state) => state.error);
+
+  // 훅은 항상 동일한 순서로 호출되어야 함 (React Hooks 규칙)
+  const campaignLoading = useCampaignStore((state) => state.isLoading);
+  const dailyStatLoading = useDailyStatStore((state) => state.isLoading);
+  const campaignError = useCampaignStore((state) => state.error);
+  const dailyStatError = useDailyStatStore((state) => state.error);
+
+  const isLoading = campaignLoading || dailyStatLoading;
+  const error = campaignError || dailyStatError;
 
   const dateRange = useFilterStore((state) => state.dateRange);
   const effectiveStatus = useFilterStore(selectEffectiveStatus);
