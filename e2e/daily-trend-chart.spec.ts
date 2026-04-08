@@ -21,19 +21,33 @@ test.describe("일별 추이 차트", () => {
     });
 
     test("차트 영역이 표시된다", async ({ page }) => {
-      // Recharts 차트 컨테이너 확인
-      const chartContainer = page.locator(".recharts-wrapper");
+      // 일별 추이 카드 내에서 Recharts 차트 컨테이너 확인
+      const dailyTrendCard = page
+        .locator('[data-slot="card"]')
+        .filter({ hasText: "일별 추이" })
+        .first();
+      const chartContainer = dailyTrendCard.locator(".recharts-wrapper");
       await expect(chartContainer).toBeVisible();
     });
 
     test("X축이 표시된다", async ({ page }) => {
-      const xAxis = page.locator(".recharts-xAxis");
-      await expect(xAxis).toBeVisible();
+      const dailyTrendCard = page
+        .locator('[data-slot="card"]')
+        .filter({ hasText: "일별 추이" })
+        .first();
+      // SVG 요소는 visibility 체크 대신 존재 여부 확인
+      const xAxis = dailyTrendCard.locator(".recharts-xAxis");
+      await expect(xAxis).toBeAttached();
     });
 
     test("Y축이 표시된다", async ({ page }) => {
-      const yAxis = page.locator(".recharts-yAxis");
-      await expect(yAxis).toBeVisible();
+      const dailyTrendCard = page
+        .locator('[data-slot="card"]')
+        .filter({ hasText: "일별 추이" })
+        .first();
+      // Y축이 2개 있으므로 (left, right) 첫 번째 확인
+      const yAxis = dailyTrendCard.locator(".recharts-yAxis").first();
+      await expect(yAxis).toBeAttached();
     });
 
     test("범례(Legend)가 표시된다", async ({ page }) => {
@@ -146,8 +160,12 @@ test.describe("일별 추이 차트", () => {
 
   test.describe("툴팁 인터랙션", () => {
     test("차트 호버 시 툴팁이 표시된다", async ({ page }) => {
-      // 차트 영역에 호버
-      const chartArea = page.locator(".recharts-surface");
+      // 일별 추이 카드 내에서 차트 영역에 호버
+      const dailyTrendCard = page
+        .locator('[data-slot="card"]')
+        .filter({ hasText: "일별 추이" })
+        .first();
+      const chartArea = dailyTrendCard.locator(".recharts-surface");
       await chartArea.hover();
 
       // 툴팁이 표시되는지 확인 (활성 dot이 나타남)
@@ -178,12 +196,16 @@ test.describe("일별 추이 차트", () => {
       // 차트가 여전히 표시되는지 확인
       await expect(page.locator("text=일별 추이")).toBeVisible();
 
-      // 데이터가 있거나 빈 상태 메시지가 표시되는지 확인
-      const hasChart = await page
+      // 일별 추이 카드 내에서 데이터가 있거나 빈 상태 메시지가 표시되는지 확인
+      const dailyTrendCard = page
+        .locator('[data-slot="card"]')
+        .filter({ hasText: "일별 추이" })
+        .first();
+      const hasChart = await dailyTrendCard
         .locator(".recharts-wrapper")
         .isVisible()
         .catch(() => false);
-      const hasEmptyMessage = await page
+      const hasEmptyMessage = await dailyTrendCard
         .locator("text=선택한 조건에 해당하는 데이터가 없습니다")
         .isVisible()
         .catch(() => false);
@@ -233,16 +255,16 @@ test.describe("일별 추이 차트", () => {
         .click();
       await page.locator("body").click({ position: { x: 0, y: 0 } });
 
-      // 차트 영역이나 빈 메시지 확인
-      const chartCard = page
-        .locator("text=일별 추이")
-        .locator("..")
-        .locator("..");
-      const isEmpty = await chartCard
+      // 일별 추이 카드 내에서 차트 영역이나 빈 메시지 확인
+      const dailyTrendCard = page
+        .locator('[data-slot="card"]')
+        .filter({ hasText: "일별 추이" })
+        .first();
+      const isEmpty = await dailyTrendCard
         .locator("text=선택한 조건에 해당하는 데이터가 없습니다")
         .isVisible()
         .catch(() => false);
-      const hasData = await page
+      const hasData = await dailyTrendCard
         .locator(".recharts-wrapper")
         .isVisible()
         .catch(() => false);
@@ -258,13 +280,17 @@ test.describe("일별 추이 차트", () => {
       // 네트워크가 빠르면 스켈레톤이 보이지 않을 수 있음
       await page.goto("/");
 
-      // 스켈레톤 또는 차트가 표시되는지 확인
-      const hasSkeleton = await page
+      // 일별 추이 카드 내에서 스켈레톤 또는 차트가 표시되는지 확인
+      const dailyTrendCard = page
+        .locator('[data-slot="card"]')
+        .filter({ hasText: "일별 추이" })
+        .first();
+      const hasSkeleton = await dailyTrendCard
         .locator("[class*='skeleton']")
         .first()
         .isVisible({ timeout: 1000 })
         .catch(() => false);
-      const hasChart = await page
+      const hasChart = await dailyTrendCard
         .locator(".recharts-wrapper")
         .isVisible({ timeout: 5000 })
         .catch(() => false);

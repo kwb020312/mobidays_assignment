@@ -161,11 +161,11 @@ test.describe("캠페인 테이블", () => {
     });
 
     test("개별 캠페인 체크박스가 표시된다", async ({ page }) => {
-      // 첫 번째 행의 체크박스 확인
+      // 첫 번째 행의 체크박스 확인 - Base UI Checkbox 사용
       const firstRowCheckbox = page
         .locator("tbody tr")
         .first()
-        .locator('[type="checkbox"]');
+        .locator('[data-slot="checkbox"]');
       await expect(firstRowCheckbox).toBeVisible();
     });
 
@@ -174,11 +174,11 @@ test.describe("캠페인 테이블", () => {
     });
 
     test("캠페인 선택 시 선택 카운트가 업데이트된다", async ({ page }) => {
-      // 첫 번째 캠페인 체크박스 클릭
+      // 첫 번째 캠페인 체크박스 클릭 - Base UI Checkbox 사용
       const firstRowCheckbox = page
         .locator("tbody tr")
         .first()
-        .locator('[type="checkbox"]');
+        .locator('[data-slot="checkbox"]');
       await firstRowCheckbox.click();
 
       // 선택됨 텍스트 업데이트 확인
@@ -208,11 +208,11 @@ test.describe("캠페인 테이블", () => {
     });
 
     test("캠페인 선택 후 상태 변경이 동작한다", async ({ page }) => {
-      // 첫 번째 캠페인 선택
+      // 첫 번째 캠페인 선택 - Base UI Checkbox 사용
       const firstRowCheckbox = page
         .locator("tbody tr")
         .first()
-        .locator('[type="checkbox"]');
+        .locator('[data-slot="checkbox"]');
       await firstRowCheckbox.click();
 
       await expect(page.locator("text=1개 선택됨")).toBeVisible();
@@ -226,11 +226,11 @@ test.describe("캠페인 테이블", () => {
     });
 
     test("선택 해제 버튼 클릭 시 선택이 해제된다", async ({ page }) => {
-      // 캠페인 선택
+      // 캠페인 선택 - Base UI Checkbox 사용
       const firstRowCheckbox = page
         .locator("tbody tr")
         .first()
-        .locator('[type="checkbox"]');
+        .locator('[data-slot="checkbox"]');
       await firstRowCheckbox.click();
 
       await expect(page.locator("text=1개 선택됨")).toBeVisible();
