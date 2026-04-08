@@ -24,17 +24,6 @@ export const ALL_STATUSES: CampaignStatus[] = ["active", "paused", "ended"];
 // 모든 매체 목록
 export const ALL_PLATFORMS: Platform[] = ["Google", "Meta", "Naver"];
 
-// 캠페인 엔티티 타입 (API 응답 - nullable 필드 포함)
-export interface CampaignRaw {
-  id: string;
-  name: string | null;
-  platform: string;
-  status: string;
-  budget: number | null;
-  startDate: string | null;
-  endDate: string | null;
-}
-
 // 캠페인 엔티티 타입 (정규화 후)
 export interface Campaign {
   id: string;
@@ -44,18 +33,6 @@ export interface Campaign {
   budget: number;
   startDate: string | null; // YYYY-MM-DD
   endDate: string | null; // YYYY-MM-DD
-}
-
-// 일별 통계 엔티티 타입 (API 응답 - nullable 필드 포함)
-export interface DailyStatRaw {
-  id: string;
-  campaignId: string;
-  date: string | null;
-  impressions: number | null;
-  clicks: number | null;
-  conversions: number | null;
-  cost: number | null;
-  conversionsValue: number | null;
 }
 
 // 일별 통계 엔티티 타입 (정규화 후)
