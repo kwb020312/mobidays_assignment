@@ -1,13 +1,71 @@
 # 프로젝트 컨텍스트
 
 ## 프로젝트 정보
+
 - **프로젝트명:** mobidays_assignment
-- **목적:** Mobidays 과제 프로젝트
-- **기술 스택:** Next.js 16, React 19, TypeScript, Tailwind CSS 4
+- **목적:** Mobidays 프론트엔드 과제 - 마케팅 캠페인 성과 대시보드
+- **기술 스택:** Vite + React 19 + TypeScript + Tailwind CSS 4
+
+---
+
+## AI 협업 방법론: 하네스 프로그래밍 (Harness Programming)
+
+### 개념
+
+본 프로젝트는 **하네스 프로그래밍** 방식으로 AI와 협업합니다. 하네스 프로그래밍이란 AI를 "마부가 말을 제어하듯" 컨텍스트 파일과 명확한 지시로 방향을 잡아주는 개발 방식입니다.
+
+### 핵심 원칙
+
+1. **요구사항 기반 프롬프트**: 모든 주요 작업은 `REQUIREMENTS.md`의 구체적인 섹션(예: "3.1 글로벌 필터", "5.3 평가 지표")을 명시적으로 참조
+2. **비판적 검증**: AI 출력물을 무조건 수용하지 않고, 요구사항 충족 여부와 아키텍처 일관성을 검토 후 수정
+3. **의사결정 문서화**: AI가 제안한 것과 실제 채택한 것의 차이를 `AI_USAGE.md`에 기록
+
+### 컨텍스트 파일 구성
+
+| 파일              | 역할                                                      |
+| ----------------- | --------------------------------------------------------- |
+| `REQUIREMENTS.md` | 과제 요구사항 원본 (AI에게 평가 기준 제공)                |
+| `CLAUDE.md`       | AI 협업 지침 및 프로젝트 규칙 (이 파일)                   |
+| `AI_USAGE.md`     | AI 활용 내역 기록 (프롬프트, 의사결정, 수정 사항)         |
+| `README.md`       | 기술 선택 근거 및 아키텍처 설명 (AI 협업 결과물의 최종본) |
+
+### 프롬프트 작성 패턴
+
+```
+REQUIREMENTS.md {섹션 번호} 기준으로 {기능} 구현:
+- 요구사항 1
+- 요구사항 2
+- 평가 포인트: {구체적 평가 기준}
+
+기존 아키텍처({패턴명}) 유지하면서 구현
+```
+
+---
+
+## 반복 작업 자동화: 커스텀 스킬
+
+AI 협업 시 반복되는 작업을 **Claude Code 커스텀 스킬**로 자동화하여 효율성을 높이세요
+
+### `/commit` - 변경사항 커밋
+
+- git status/diff 분석 후 커밋 메시지 자동 생성
+- Conventional Commits 형식 준수
+- Co-Authored-By 태그 자동 추가
+
+### `/ai-log` - AI 활용 내역 기록
+
+- 현재 작업 내용을 `AI_USAGE.md`에 자동 기록
+- 프롬프트, AI 작업 내용, 의사결정, 수정 사항 템플릿 자동 적용
+- 날짜별 섹션 자동 생성
+
+이를 통해 문서화 부담을 줄이고, 일관된 형식의 AI 활용 기록을 유지하세요
+
+---
 
 ## AI 활용 지침
 
 ### 필수 사항
+
 이 프로젝트는 **AI 도구 활용을 적극 권장**합니다. 모든 주요 작업 후 `AI_USAGE.md`에 다음 내용을 기록해야 합니다:
 
 1. **사용한 프롬프트** - 어떤 요청을 했는지
@@ -16,29 +74,45 @@
 4. **수정 사항** - AI 결과물을 직접 수정한 내용과 이유
 
 ### 기록 시점
+
 - 새로운 기능 구현 시
 - 버그 수정 시
 - 리팩토링 시
 - 아키텍처 결정 시
 
 ### 커밋/PR 시
+
 - Git 커밋 메시지에 AI 활용 여부 표시 권장
 - PR 메시지에 AI 활용 내역 포함
+
+---
 
 ## 명령어
 
 ### 개발
+
 ```bash
-npm run dev     # 개발 서버
-npm run build   # 빌드
-npm run lint    # 린트
+npm run dev     # 개발 서버 (Vite + json-server)
+npm run build   # 프로덕션 빌드
+npm run lint    # ESLint 검사
+npm run format  # Prettier 포맷팅
+npm run test    # Playwright E2E 테스트
 ```
 
 ### AI 기록
-- `/ai-log` - AI 활용 내역 추가 (커스텀 명령어)
 
-## 디렉토리 구조
+- `/ai-log` - AI 활용 내역 추가 (커스텀 스킬)
+- `/commit` - 변경사항 커밋 (커스텀 스킬)
+
+---
+
+## 디렉토리 구조 (Feature-Sliced Design)
+
 ```
 src/
-└── app/          # App Router 페이지 및 레이아웃
+├── shared/       # 도메인 무관 공유 자원 (ui, lib, api, constants)
+├── entities/     # 도메인 엔티티 (campaign, dailyStat)
+├── features/     # 기능 단위 모듈 (filter, dailyTrendChart, campaignTable, ...)
+├── App.tsx       # 루트 컴포넌트
+└── main.tsx      # 진입점
 ```
