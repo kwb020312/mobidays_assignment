@@ -157,7 +157,7 @@ export function CampaignTable() {
         <div className="flex min-h-[700px] flex-col overflow-y-hidden contain-[layout]">
           {isLoading ? (
             <div className="flex flex-1 flex-col overflow-x-auto">
-              <Table className="min-w-[800px]">
+              <Table className="min-w-[800px] table-fixed">
                 <TableHeader>
                   <TableRow>
                     <TableHead style={{ width: 40 }}>
@@ -232,7 +232,7 @@ export function CampaignTable() {
             <div className="flex flex-1 flex-col">
               <div className="h-[620px] overflow-x-auto">
                 <Table
-                  className="min-w-[800px]"
+                  className="min-w-[800px] table-fixed"
                   srCaption="캠페인 목록 테이블 - 좌우로 스크롤하여 더 많은 정보를 확인할 수 있습니다"
                 >
                   <TableHeader>
