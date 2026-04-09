@@ -8,7 +8,7 @@ import type { SortableColumn, SortState } from "../types";
 interface SortableHeaderProps {
   column: SortableColumn;
   label: string;
-  width: string;
+  width: string | number;
   align?: "left" | "right";
   sortState: SortState;
   onSort: (column: SortableColumn) => void;

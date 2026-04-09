@@ -77,88 +77,121 @@ export function CampaignTable() {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
+      <CardHeader className="space-y-4">
+        {/* 모바일: 타이틀 + 건수 / 데스크톱: 타이틀 + 등록 | 검색 + 건수 */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center justify-between sm:justify-start sm:gap-3">
             <CardTitle>캠페인 목록</CardTitle>
-            <CampaignRegistrationModal />
+            <span className="text-sm text-muted-foreground sm:hidden">
+              {searchedCount} / {totalCount}건
+            </span>
+            <div className="hidden sm:block">
+              <CampaignRegistrationModal />
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Input
               placeholder="캠페인명 검색..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-48"
+              className="flex-1 sm:w-48 sm:flex-none"
               aria-label="캠페인명 검색"
             />
-            <span className="text-sm text-muted-foreground whitespace-nowrap">
+            <span className="hidden text-sm text-muted-foreground whitespace-nowrap sm:inline">
               {searchedCount} / {totalCount}건
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 pt-2">
-          <span className="text-sm text-muted-foreground">
-            {selectedIds.size}개 선택됨
-          </span>
-          <Select
-            options={ALL_STATUSES.map((s) => ({
-              value: s,
-              label: STATUS_LABELS[s],
-            }))}
-            placeholder="상태 변경"
-            onChange={(e) => {
-              if (e.target.value) {
-                handleBulkStatusChange(e.target.value as CampaignStatus);
-              }
-            }}
-            value=""
-          />
-          <Button variant="ghost" size="sm" onClick={clearSelection}>
-            선택 해제
-          </Button>
+        {/* 모바일: 등록 + 선택/상태변경을 한 줄에 / 데스크톱: 선택/상태변경만 */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="sm:hidden">
+            <CampaignRegistrationModal />
+          </div>
+          <div className="flex flex-1 items-center justify-end gap-2 sm:flex-none sm:justify-start">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              {selectedIds.size}개 선택
+            </span>
+            <Select
+              options={ALL_STATUSES.map((s) => ({
+                value: s,
+                label: STATUS_LABELS[s],
+              }))}
+              placeholder="상태 변경"
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleBulkStatusChange(e.target.value as CampaignStatus);
+                }
+              }}
+              value=""
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearSelection}
+              className="hidden sm:inline-flex"
+            >
+              선택 해제
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearSelection}
+              className="sm:hidden"
+              aria-label="선택 해제"
+            >
+              해제
+            </Button>
+          </div>
         </div>
       </CardHeader>
 
       <CardContent>
-        <div className="flex min-h-[600px] flex-col">
+        {/* 모바일 스크롤 힌트 */}
+        <div className="mb-2 flex items-center gap-1 text-xs text-muted-foreground sm:hidden">
+          <span aria-hidden="true">←</span>
+          <span>좌우로 스크롤하세요</span>
+          <span aria-hidden="true">→</span>
+        </div>
+
+        <div className="flex min-h-[700px] flex-col">
           {isLoading ? (
-            <div className="flex flex-1 flex-col">
-              <Table className="table-fixed">
+            <div className="flex flex-1 flex-col overflow-x-auto">
+              <Table className="min-w-[800px]">
                 <TableHeader>
                   <TableRow>
-                    <TableHead style={{ width: "4%" }}>
+                    <TableHead style={{ width: 40 }}>
                       <Skeleton className="h-4 w-4" />
                     </TableHead>
-                    <TableHead style={{ width: "20%" }}>
+                    <TableHead style={{ width: 180 }}>
                       <Skeleton className="h-4 w-16" />
                     </TableHead>
-                    <TableHead style={{ width: "8%" }}>
+                    <TableHead style={{ width: 80 }}>
                       <Skeleton className="h-4 w-10" />
                     </TableHead>
-                    <TableHead style={{ width: "8%" }}>
+                    <TableHead style={{ width: 70 }}>
                       <Skeleton className="h-4 w-10" />
                     </TableHead>
-                    <TableHead style={{ width: "15%" }}>
+                    <TableHead style={{ width: 140 }}>
                       <Skeleton className="h-4 w-14" />
                     </TableHead>
-                    <TableHead style={{ width: "15%" }}>
+                    <TableHead style={{ width: 120 }}>
                       <Skeleton className="h-4 w-20" />
                     </TableHead>
-                    <TableHead style={{ width: "10%" }}>
+                    <TableHead style={{ width: 70 }}>
                       <Skeleton className="h-4 w-10" />
                     </TableHead>
-                    <TableHead style={{ width: "10%" }}>
+                    <TableHead style={{ width: 80 }}>
                       <Skeleton className="h-4 w-10" />
                     </TableHead>
-                    <TableHead style={{ width: "10%" }}>
+                    <TableHead style={{ width: 70 }}>
                       <Skeleton className="h-4 w-10" />
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {Array.from({ length: 10 }).map((_, i) => (
-                    <TableRow key={i}>
+                    <TableRow key={i} className="h-14">
                       <TableCell>
                         <Skeleton className="h-4 w-4" />
                       </TableCell>
@@ -196,14 +229,14 @@ export function CampaignTable() {
               선택한 조건에 해당하는 캠페인이 없습니다.
             </div>
           ) : (
-            <div className="flex flex-1 flex-col">
+            <div className="flex flex-1 flex-col overflow-x-auto">
               <Table
-                className="table-fixed"
+                className="min-w-[800px]"
                 srCaption="캠페인 목록 테이블 - 좌우로 스크롤하여 더 많은 정보를 확인할 수 있습니다"
               >
                 <TableHeader>
                   <TableRow>
-                    <TableHead style={{ width: "4%" }}>
+                    <TableHead style={{ width: 40 }}>
                       <Checkbox
                         checked={allCurrentPageSelected}
                         onCheckedChange={(checked) =>
@@ -212,20 +245,20 @@ export function CampaignTable() {
                         aria-label="현재 페이지 전체 선택"
                       />
                     </TableHead>
-                    <TableHead style={{ width: "20%" }}>캠페인명</TableHead>
-                    <TableHead style={{ width: "8%" }}>상태</TableHead>
-                    <TableHead style={{ width: "8%" }}>매체</TableHead>
+                    <TableHead style={{ width: 180 }}>캠페인명</TableHead>
+                    <TableHead style={{ width: 80 }}>상태</TableHead>
+                    <TableHead style={{ width: 70 }}>매체</TableHead>
                     <SortableHeader
                       column="startDate"
                       label="집행기간"
-                      width="15%"
+                      width={140}
                       sortState={sortState}
                       onSort={handleSort}
                     />
                     <SortableHeader
                       column="totalCost"
                       label="총 집행금액"
-                      width="15%"
+                      width={120}
                       align="right"
                       sortState={sortState}
                       onSort={handleSort}
@@ -233,7 +266,7 @@ export function CampaignTable() {
                     <SortableHeader
                       column="ctr"
                       label="CTR"
-                      width="10%"
+                      width={70}
                       align="right"
                       sortState={sortState}
                       onSort={handleSort}
@@ -241,7 +274,7 @@ export function CampaignTable() {
                     <SortableHeader
                       column="cpc"
                       label="CPC"
-                      width="10%"
+                      width={80}
                       align="right"
                       sortState={sortState}
                       onSort={handleSort}
@@ -249,7 +282,7 @@ export function CampaignTable() {
                     <SortableHeader
                       column="roas"
                       label="ROAS"
-                      width="10%"
+                      width={70}
                       align="right"
                       sortState={sortState}
                       onSort={handleSort}
@@ -260,6 +293,7 @@ export function CampaignTable() {
                   {paginatedData.map((row) => (
                     <TableRow
                       key={row.id}
+                      className="h-14"
                       data-state={
                         selectedIds.has(row.id) ? "selected" : undefined
                       }
@@ -286,20 +320,22 @@ export function CampaignTable() {
                           {STATUS_LABELS[row.status]}
                         </Badge>
                       </TableCell>
-                      <TableCell>{PLATFORM_LABELS[row.platform]}</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {PLATFORM_LABELS[row.platform]}
+                      </TableCell>
                       <TableCell className="whitespace-nowrap">
                         {formatDateRange(row.startDate, row.endDate)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="whitespace-nowrap text-right">
                         {formatCurrency(row.totalCost)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="whitespace-nowrap text-right">
                         {formatPercent(row.ctr)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="whitespace-nowrap text-right">
                         {formatCPC(row.cpc)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="whitespace-nowrap text-right">
                         {formatPercent(row.roas)}
                       </TableCell>
                     </TableRow>

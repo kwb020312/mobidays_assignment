@@ -14,11 +14,6 @@ const Table = React.forwardRef<HTMLTableElement, TableProps>(
       aria-label={srCaption || "데이터 테이블"}
       tabIndex={0}
     >
-      {/* 모바일 스크롤 힌트 - 우측 그라데이션 */}
-      <div
-        className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-background to-transparent md:hidden"
-        aria-hidden="true"
-      />
       <table
         ref={ref}
         className={cn("w-full caption-bottom text-sm", className)}
