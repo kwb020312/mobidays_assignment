@@ -154,7 +154,7 @@ export function CampaignTable() {
           <span aria-hidden="true">→</span>
         </div>
 
-        <div className="flex min-h-[700px] flex-col">
+        <div className="flex min-h-[700px] flex-col overflow-y-hidden contain-[layout]">
           {isLoading ? (
             <div className="flex flex-1 flex-col overflow-x-auto">
               <Table className="min-w-[800px]">
@@ -229,119 +229,121 @@ export function CampaignTable() {
               선택한 조건에 해당하는 캠페인이 없습니다.
             </div>
           ) : (
-            <div className="flex flex-1 flex-col overflow-x-auto">
-              <Table
-                className="min-w-[800px]"
-                srCaption="캠페인 목록 테이블 - 좌우로 스크롤하여 더 많은 정보를 확인할 수 있습니다"
-              >
-                <TableHeader>
-                  <TableRow>
-                    <TableHead style={{ width: 40 }}>
-                      <Checkbox
-                        checked={allCurrentPageSelected}
-                        onCheckedChange={(checked) =>
-                          selectMany(currentPageIds, checked === true)
-                        }
-                        aria-label="현재 페이지 전체 선택"
-                      />
-                    </TableHead>
-                    <TableHead style={{ width: 180 }}>캠페인명</TableHead>
-                    <TableHead style={{ width: 80 }}>상태</TableHead>
-                    <TableHead style={{ width: 70 }}>매체</TableHead>
-                    <SortableHeader
-                      column="startDate"
-                      label="집행기간"
-                      width={140}
-                      sortState={sortState}
-                      onSort={handleSort}
-                    />
-                    <SortableHeader
-                      column="totalCost"
-                      label="총 집행금액"
-                      width={120}
-                      align="right"
-                      sortState={sortState}
-                      onSort={handleSort}
-                    />
-                    <SortableHeader
-                      column="ctr"
-                      label="CTR"
-                      width={70}
-                      align="right"
-                      sortState={sortState}
-                      onSort={handleSort}
-                    />
-                    <SortableHeader
-                      column="cpc"
-                      label="CPC"
-                      width={80}
-                      align="right"
-                      sortState={sortState}
-                      onSort={handleSort}
-                    />
-                    <SortableHeader
-                      column="roas"
-                      label="ROAS"
-                      width={70}
-                      align="right"
-                      sortState={sortState}
-                      onSort={handleSort}
-                    />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedData.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      className="h-14"
-                      data-state={
-                        selectedIds.has(row.id) ? "selected" : undefined
-                      }
-                    >
-                      <TableCell>
+            <div className="flex flex-1 flex-col">
+              <div className="h-[620px] overflow-x-auto">
+                <Table
+                  className="min-w-[800px]"
+                  srCaption="캠페인 목록 테이블 - 좌우로 스크롤하여 더 많은 정보를 확인할 수 있습니다"
+                >
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead style={{ width: 40 }}>
                         <Checkbox
-                          checked={selectedIds.has(row.id)}
+                          checked={allCurrentPageSelected}
                           onCheckedChange={(checked) =>
-                            toggleSelection(row.id, checked === true)
+                            selectMany(currentPageIds, checked === true)
                           }
-                          aria-label={`${row.name || "캠페인"} 선택`}
+                          aria-label="현재 페이지 전체 선택"
                         />
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        <span
-                          className="block truncate"
-                          title={row.name ?? undefined}
-                        >
-                          {row.name || "-"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={STATUS_VARIANT[row.status]}>
-                          {STATUS_LABELS[row.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {PLATFORM_LABELS[row.platform]}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {formatDateRange(row.startDate, row.endDate)}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-right">
-                        {formatCurrency(row.totalCost)}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-right">
-                        {formatPercent(row.ctr)}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-right">
-                        {formatCPC(row.cpc)}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-right">
-                        {formatPercent(row.roas)}
-                      </TableCell>
+                      </TableHead>
+                      <TableHead style={{ width: 180 }}>캠페인명</TableHead>
+                      <TableHead style={{ width: 80 }}>상태</TableHead>
+                      <TableHead style={{ width: 70 }}>매체</TableHead>
+                      <SortableHeader
+                        column="startDate"
+                        label="집행기간"
+                        width={140}
+                        sortState={sortState}
+                        onSort={handleSort}
+                      />
+                      <SortableHeader
+                        column="totalCost"
+                        label="총 집행금액"
+                        width={120}
+                        align="right"
+                        sortState={sortState}
+                        onSort={handleSort}
+                      />
+                      <SortableHeader
+                        column="ctr"
+                        label="CTR"
+                        width={70}
+                        align="right"
+                        sortState={sortState}
+                        onSort={handleSort}
+                      />
+                      <SortableHeader
+                        column="cpc"
+                        label="CPC"
+                        width={80}
+                        align="right"
+                        sortState={sortState}
+                        onSort={handleSort}
+                      />
+                      <SortableHeader
+                        column="roas"
+                        label="ROAS"
+                        width={70}
+                        align="right"
+                        sortState={sortState}
+                        onSort={handleSort}
+                      />
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedData.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        className="h-14"
+                        data-state={
+                          selectedIds.has(row.id) ? "selected" : undefined
+                        }
+                      >
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedIds.has(row.id)}
+                            onCheckedChange={(checked) =>
+                              toggleSelection(row.id, checked === true)
+                            }
+                            aria-label={`${row.name || "캠페인"} 선택`}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          <span
+                            className="block truncate"
+                            title={row.name ?? undefined}
+                          >
+                            {row.name || "-"}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={STATUS_VARIANT[row.status]}>
+                            {STATUS_LABELS[row.status]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {PLATFORM_LABELS[row.platform]}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {formatDateRange(row.startDate, row.endDate)}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-right">
+                          {formatCurrency(row.totalCost)}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-right">
+                          {formatPercent(row.ctr)}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-right">
+                          {formatCPC(row.cpc)}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-right">
+                          {formatPercent(row.roas)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
               <div
                 className={cn(
