@@ -1,7 +1,8 @@
 import { format, parseISO } from "date-fns";
 import { ko } from "date-fns/locale";
 
-export function formatNumber(value: number): string {
+// 차트 Y축용 축약 숫자 포맷 (1.2M, 3.5K)
+export function formatCompactNumber(value: number): string {
   if (value >= 1_000_000_000) {
     return `${(value / 1_000_000_000).toFixed(1)}B`;
   }
@@ -14,6 +15,7 @@ export function formatNumber(value: number): string {
   return value.toLocaleString();
 }
 
+// 차트 X축 날짜 포맷 (M/d)
 export function formatXAxisDate(dateStr: string): string {
   try {
     return format(parseISO(dateStr), "M/d", { locale: ko });
@@ -22,14 +24,11 @@ export function formatXAxisDate(dateStr: string): string {
   }
 }
 
+// 툴팁 날짜 포맷 (yyyy년 M월 d일)
 export function formatTooltipDate(dateStr: string): string {
   try {
     return format(parseISO(dateStr), "yyyy년 M월 d일", { locale: ko });
   } catch {
     return dateStr;
   }
-}
-
-export function formatDateRange(from: Date, to: Date): string {
-  return `${format(from, "yyyy.MM.dd", { locale: ko })} - ${format(to, "yyyy.MM.dd", { locale: ko })}`;
 }

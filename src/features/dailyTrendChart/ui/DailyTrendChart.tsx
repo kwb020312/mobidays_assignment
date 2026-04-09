@@ -19,11 +19,11 @@ import { useFilteredDailyStats } from "../hooks/useFilteredDailyStats";
 import { MetricToggle } from "./MetricToggle";
 import { METRIC_OPTIONS, DEFAULT_METRICS, type DailyMetric } from "../types";
 import {
-  formatNumber,
+  formatCompactNumber,
   formatXAxisDate,
   formatTooltipDate,
-  formatDateRange,
 } from "../lib/formatters";
+import { formatDateRange } from "@/shared/lib/formatters";
 
 export function DailyTrendChart() {
   const { data, isLoading, error, isEmpty } = useFilteredDailyStats();
@@ -127,7 +127,7 @@ export function DailyTrendChart() {
               />
               <YAxis
                 yAxisId="left"
-                tickFormatter={formatNumber}
+                tickFormatter={formatCompactNumber}
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
@@ -143,7 +143,7 @@ export function DailyTrendChart() {
               <YAxis
                 yAxisId="right"
                 orientation="right"
-                tickFormatter={formatNumber}
+                tickFormatter={formatCompactNumber}
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
